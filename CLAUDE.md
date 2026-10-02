@@ -63,7 +63,8 @@ pushas, annars fastnar plattan på gammal cache.
    `stilSatt(ctx)` och `landskap(ctx, {...})`). Stil: realistiska, lugna
    konturer i ungefär 25–40 färgbara ytor — inte fler, så det blir lätt för
    små fingrar. Detaljer (bultar, nav, springor, slangar, galler) ritas som
-   `prick()` (svart prick) eller `linje()` som stannar en bit från kanten —
+   `prick()` (svart prick) eller `linje(ctx, bygg, TUNN)` (tunt streck) som
+   stannar en bit från kanten —
    då syns de utan att bli egna ytor att färga. Slå ihop delar som hör ihop
    (t.ex. skopa och tänder, rör och ljuddämpare) till en `form()`. Traktorn är ritad snett framifrån i ett eget
    koordinatsystem (`ctx.translate/scale`) och lägg den i
@@ -73,6 +74,18 @@ pushas, annars fastnar plattan på gammal cache.
    `form()` som läggs ovanpå raderar linjerna under sig — se till att
    ovanpåliggande delar själva stänger ytan.
 3. Bumpa `VERSION` i `sw.js`.
+
+## Fallgropar när man ritar
+- Ett löst streck som rör två olika konturer (eller bildkanten i båda
+  ändar) delar upp ytan i fler fält. Ge dem fria ändar. Det gäller även
+  bakgrundsdetaljer (fåror, hjulspår) som går bakom maskinen.
+- Streck som korsar varandra inuti en yta kan skapa pyttesmå celler. Celler
+  under `MIN_REGION` (150 px) går inte att färga (tryck snappar till
+  närmaste riktiga yta) — det är OK för t.ex. ljuddämparens rutnät.
+- Cirklar som ligger tätt inuti en rundad form (drev i larvbandets ände)
+  lämnar en tunn ring-yta; gör cirkeln så stor att formens kant täcker den.
+- Kontrollera antalet ytor: se till att inte fler än ~30 är större än
+  `MIN_REGION` (köra appen med en debug-hook på `labelRegions`).
 
 ## Konventioner
 - Svenska i UI och kommentarer. Ingen byggpipeline, inga dependencies.
