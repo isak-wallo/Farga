@@ -9,8 +9,14 @@ skal. Språk i appen och i koden (kommentarer, knappnamn) är **svenska**.
 - En tecknad bild med tydliga svarta streck. Tryck på ett område → det får
   den valda färgen. Samma 6 färger som Kludda (svart, röd, gul, blå, grön,
   lila); röd är vald från start.
+- **◀ ▶** bläddrar mellan bilderna (traktor, grävmaskin). Varje bild minns
+  sina färger och sin ångra-historik så länge appen är öppen
+  (`pictureState`/`loadPicture`). Knapparna agerar direkt på `touchstart`
+  (med `stopPropagation`), inget håll krävs.
 - **ÅNGRA** (håll 1 s, upp till 10 steg) och **RENSA** (tvåstegs, håll 1 s +
   SÄKER?) fungerar som i Kludda. RENSA tömmer bilden på färg.
+- Panelens rutnät: liggande 2×5 (bläddra överst, sedan ÅNGRA/RENSA, sedan
+  färgerna), stående 4×3. Se `style.css`.
 - Landskapslås, fullscreen, layoutlås/dö-yta, back-fälla och offline-SW är
   kopierade från Kludda — se Kluddas CLAUDE.md för detaljerna.
 - Hostas via GitHub Pages: `https://isak-wallo.github.io/Farga/`.
@@ -29,7 +35,10 @@ pushas, annars fastnar plattan på gammal cache.
 - **Bilder** är funktioner som ritar på `lineCanvas` och listas i
   `PICTURES`. Hjälpare: `form()` ritar en *sluten* form och raderar det som
   ligger bakom (destination-out), så överlappande delar skymmer varandra;
-  `linje()` ritar ett löst streck. Det som ska gå att färga måste vara helt
+  `linje()` ritar ett löst streck; `stav()` (cylinder/stång) och `mangel()`
+  (månghörning) lägger till banor i en `form()`. Ange banor **medurs** —
+  blandade riktningar som överlappar i samma form kan ta ut varandra
+  (nonzero-fyllning) så att det blir hål. Det som ska gå att färga måste vara helt
   omslutet av linjer (inga glapp, linjebredd `LW`).
 - **Områden** numreras en gång vid laddning (`labelRegions`, scanline-flood,
   4-grannar). `labels[i]` = områdesnummer (0 = linje). Tryck → slå upp
@@ -44,8 +53,12 @@ pushas, annars fastnar plattan på gammal cache.
   som i Kludda.
 
 ## Lägga till en ny bild
-1. Skriv `ritaXxx(ctx)` (se `ritaTraktor`) och lägg den i `PICTURES`.
-2. Kontrollera i webbläsaren att alla ytor går att färga (inga läckor).
+1. Skriv `ritaXxx(ctx)` (se `ritaTraktor`/`ritaGravmaskin`) och lägg den i
+   `PICTURES`. Bläddra-knapparna hittar den automatiskt.
+2. Kontrollera i webbläsaren att alla ytor går att färga (inga läckor):
+   ytor som inte ska hänga ihop måste vara helt omslutna. Tänk på att en
+   `form()` som läggs ovanpå raderar linjerna under sig — se till att
+   ovanpåliggande delar själva stänger ytan.
 3. Bumpa `VERSION` i `sw.js`.
 
 ## Konventioner

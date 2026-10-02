@@ -9,4 +9,5 @@ Syskon-app till [Kludda](https://github.com/isak-wallo/Kludda) (fri ritning) och
 Öppna **https://isak-wallo.github.io/Farga/** i Chrome på plattan och välj
 "Lägg till på hemskärm" för att installera den (fungerar sedan offline).
 
-Bilder: en traktor (fler läggs till i `PICTURES` i `app.js`).
+Bilder: en traktor och en grävmaskin (bläddra med ◀ ▶). Fler läggs till i
+`PICTURES` i `app.js`.

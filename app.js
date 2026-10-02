@@ -192,6 +192,27 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.arc(x, y, r, 0, Math.PI * 2);
     }
 
+    // En stång (t.ex. hydraulcylinder) mellan två punkter. Banorna ritas
+    // medurs, som övriga hjälpare — blandade riktningar i samma form kan
+    // annars ta ut varandra där de överlappar.
+    function stav(ctx, x1, y1, x2, y2, w) {
+        const l = Math.hypot(x2 - x1, y2 - y1);
+        const nx = (y2 - y1) / l * w / 2;
+        const ny = -(x2 - x1) / l * w / 2;
+        ctx.moveTo(x1 + nx, y1 + ny);
+        ctx.lineTo(x2 + nx, y2 + ny);
+        ctx.lineTo(x2 - nx, y2 - ny);
+        ctx.lineTo(x1 - nx, y1 - ny);
+        ctx.closePath();
+    }
+
+    // En månghörning av punkter [x, y] (ange dem medurs).
+    function mangel(ctx, pts) {
+        ctx.moveTo(pts[0][0], pts[0][1]);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+        ctx.closePath();
+    }
+
     // En sluten form: ritar kanten utanför banan och raderar allt inuti,
     // så att det som ligger bakom (t.ex. markens linje bakom ett hjul)
     // skyms. Flera delbanor i samma form smälter ihop till en kontur.
@@ -283,8 +304,125 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function ritaGravmaskin(ctx) {
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = '#000';
+        ctx.fillStyle = '#000';
+
+        // Marken (går bakom maskinen)
+        linje(ctx, c => {
+            c.moveTo(-20, 565);
+            c.bezierCurveTo(300, 525, 700, 605, 1220, 545);
+        });
+
+        // Sol (uppe till höger) och två moln
+        form(ctx, c => cirkel(c, 1090, 105, 50));
+        for (let k = 0; k < 10; k++) {
+            const v = k * Math.PI / 5 + 0.15;
+            linje(ctx, c => {
+                c.moveTo(1090 + Math.cos(v) * 72, 105 + Math.sin(v) * 72);
+                c.lineTo(1090 + Math.cos(v) * 98, 105 + Math.sin(v) * 98);
+            });
+        }
+        ctx.beginPath(); ctx.arc(1073, 94, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(1107, 94, 5, 0, Math.PI * 2); ctx.fill();
+        linje(ctx, c => c.arc(1090, 105, 25, 0.25 * Math.PI, 0.75 * Math.PI));
+        form(ctx, c => {
+            cirkel(c, 130, 150, 32);
+            cirkel(c, 185, 125, 42);
+            cirkel(c, 243, 148, 34);
+            rr(c, 100, 150, 175, 46, 23);
+        });
+        form(ctx, c => {
+            cirkel(c, 505, 100, 24);
+            cirkel(c, 545, 85, 32);
+            cirkel(c, 590, 102, 24);
+            rr(c, 482, 100, 130, 34, 17);
+        });
+
+        // Jordhög till höger (bakom skopan). Underkanten går utanför bilden.
+        form(ctx, c => {
+            c.moveTo(860, 728);
+            c.bezierCurveTo(900, 590, 1010, 520, 1130, 520);
+            c.bezierCurveTo(1200, 520, 1245, 620, 1275, 728);
+            c.closePath();
+        });
+        form(ctx, c => cirkel(c, 1140, 600, 15));
+        form(ctx, c => cirkel(c, 1195, 660, 12));
+        form(ctx, c => cirkel(c, 1085, 690, 11));
+
+        // Underrede: ram och larvband med hjul
+        form(ctx, c => rr(c, 300, 550, 400, 55, 10));
+        form(ctx, c => rr(c, 225, 590, 550, 125, 62));
+        form(ctx, c => cirkel(c, 290, 652, 34));
+        form(ctx, c => cirkel(c, 500, 652, 28));
+        form(ctx, c => cirkel(c, 710, 652, 34));
+        // Larvbandets klackar (korta streck på över- och undersidan)
+        for (let x = 270; x <= 730; x += 40) {
+            linje(ctx, c => { c.moveTo(x, 592); c.lineTo(x, 606); });
+            linje(ctx, c => { c.moveTo(x, 699); c.lineTo(x, 713); });
+        }
+
+        // Överdel: plattform, motvikt, motorhuv med avgasrör
+        form(ctx, c => rr(c, 270, 520, 445, 52, 10));
+        form(ctx, c => rr(c, 430, 362, 26, 80, 6));
+        form(ctx, c => rr(c, 422, 345, 42, 24, 8));
+        form(ctx, c => rr(c, 210, 395, 190, 177, 48));
+        form(ctx, c => rr(c, 385, 430, 175, 142, 16));
+        form(ctx, c => rr(c, 410, 465, 125, 14, 7));
+        form(ctx, c => rr(c, 410, 495, 125, 14, 7));
+
+        // Hytt med tak, varningslampa, fönster och förare
+        form(ctx, c => rr(c, 530, 332, 170, 240, 20));
+        form(ctx, c => rr(c, 514, 312, 202, 32, 12));
+        form(ctx, c => cirkel(c, 615, 292, 14));
+        form(ctx, c => rr(c, 552, 358, 126, 118, 14));
+        form(ctx, c => cirkel(c, 615, 422, 26));
+        form(ctx, c => c.arc(615, 408, 30, Math.PI, 2 * Math.PI));
+        ctx.beginPath(); ctx.arc(605, 424, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(626, 424, 4, 0, Math.PI * 2); ctx.fill();
+        linje(ctx, c => c.arc(615, 426, 12, 0.2 * Math.PI, 0.8 * Math.PI));
+
+        // Bom (böjd)
+        form(ctx, c => mangel(c, [
+            [675, 548], [690, 455], [800, 300], [930, 235], [988, 262],
+            [962, 312], [868, 362], [805, 470], [772, 552]
+        ]));
+        // Bomcylinder
+        form(ctx, c => stav(c, 740, 530, 795, 425, 28));
+        form(ctx, c => stav(c, 795, 425, 835, 350, 14));
+        form(ctx, c => cirkel(c, 740, 530, 14));
+        form(ctx, c => cirkel(c, 835, 350, 12));
+
+        // Stickan (nedåt till höger) och dess cylinder
+        form(ctx, c => { stav(c, 952, 265, 1090, 515, 66); cirkel(c, 952, 265, 40); cirkel(c, 1090, 515, 34); });
+        // Stickcylinder: ligger ovanpå bommen, fäst med två fästen
+        form(ctx, c => stav(c, 800, 298, 790, 252, 18));
+        form(ctx, c => stav(c, 950, 236, 958, 196, 18));
+        form(ctx, c => stav(c, 790, 252, 872, 224, 32));
+        form(ctx, c => stav(c, 872, 224, 958, 196, 16));
+        form(ctx, c => cirkel(c, 790, 252, 12));
+        form(ctx, c => cirkel(c, 958, 196, 12));
+
+        // Skopa med tänder
+        form(ctx, c => mangel(c, [
+            [1070, 488], [1145, 505], [1185, 585], [1168, 665], [1115, 700],
+            [1040, 705], [1012, 690], [1030, 640], [1058, 560]
+        ]));
+        form(ctx, c => mangel(c, [[1008, 688], [1040, 706], [1014, 730]]));
+        form(ctx, c => mangel(c, [[1046, 708], [1082, 710], [1064, 735]]));
+        form(ctx, c => mangel(c, [[1090, 708], [1125, 698], [1112, 728]]));
+
+        // Leder (bultar)
+        form(ctx, c => cirkel(c, 952, 265, 14));
+        form(ctx, c => cirkel(c, 1090, 515, 14));
+        form(ctx, c => cirkel(c, 690, 470, 14));
+    }
+
     const PICTURES = [
-        { namn: 'Traktor', rita: ritaTraktor }
+        { namn: 'Traktor', rita: ritaTraktor },
+        { namn: 'Grävmaskin', rita: ritaGravmaskin }
     ];
     let currentPicture = 0;
 
@@ -358,17 +496,39 @@ document.addEventListener('DOMContentLoaded', () => {
         regionBottom[id] = bottom;
     }
 
+    // Varje bild minns sina färger och sin ångra-historik medan appen är
+    // öppen, så man kan bläddra fram och tillbaka utan att förlora något.
+    // Bara färgtabellen sparas (ytorna numreras likadant varje gång).
+    const pictureState = [];
+    let pictureLoaded = false;
+
     function loadPicture(index) {
+        if (pictureLoaded) {
+            pictureState[currentPicture] = { regionInt: regionInt, undo: undoStack.slice() };
+        }
+        pictureLoaded = true;
         currentPicture = index;
         lCtx.setTransform(1, 0, 0, 1, 0, 0);
         lCtx.clearRect(0, 0, PAPER_W, PAPER_H);
         PICTURES[index].rita(lCtx);
         labelRegions();
         undoStack.length = 0;
+        const saved = pictureState[index];
+        if (saved && saved.regionInt.length === regionInt.length) {
+            regionInt = saved.regionInt;
+            saved.undo.forEach(u => undoStack.push(u));
+            paintAll();
+        } else {
+            fillPx.fill(WHITE);
+            fCtx.putImageData(fillImage, 0, 0);
+        }
         updateUndoState();
-        fillPx.fill(WHITE);
-        fCtx.putImageData(fillImage, 0, 0);
+        resetClearButton();
         render();
+    }
+
+    function changePicture(step) {
+        loadPicture((currentPicture + step + PICTURES.length) % PICTURES.length);
     }
 
     // Målar om ett enda område (snabbt: bara dess rader).
@@ -606,6 +766,18 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation(); // Hindra canvas touch-hantering
             const color = this.getAttribute('data-color');
             selectColor(color, this);
+        }, { passive: false });
+    });
+
+    // Bläddra mellan bilder. Som färgrutorna: touchstart (med stopPropagation)
+    // för touch, click för mus.
+    [['prev-btn', -1], ['next-btn', 1]].forEach(([id, step]) => {
+        const btn = document.getElementById(id);
+        btn.addEventListener('click', () => changePicture(step));
+        btn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            changePicture(step);
         }, { passive: false });
     });
 

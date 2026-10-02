@@ -88,8 +88,8 @@ body {
     height: 100%;
 }
 
-/* Panel med 4x2-rutnät: 6 färger + RENSA som upptar 2 celler.
-   Stående: 4 kolumner x 2 rader. Liggande: 2 kolumner x 4 rader.
+/* Panel: 6 färger + ÅNGRA/RENSA + bläddra-knapparna ◀ ▶.
+   Stående: 4 kolumner x 3 rader. Liggande: 2 kolumner x 5 rader.
    Placeringen är explicit i båda lägena så att varje färg
    hamnar på samma fysiska plats när man roterar. */
 #button-container {
@@ -97,7 +97,7 @@ body {
     height: 20%;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
     background-color: #1c1c1e;
     padding: 6px;
     gap: 6px;
@@ -107,7 +107,7 @@ body {
         flex: 0 0 20%;
         height: 100%;
         grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(4, 1fr);
+        grid-template-rows: repeat(5, 1fr);
     }
 }
 
@@ -120,17 +120,21 @@ body {
 .c-lila  { grid-area: 2 / 3; }
 #undo-btn  { grid-area: 1 / 4; } /* Ångra: övre cellen till höger */
 #clear-btn { grid-area: 2 / 4; } /* Rensa: nedre cellen till höger */
+#prev-btn  { grid-area: 3 / 1 / 4 / 3; } /* Bläddra: nedersta raden, två celler var */
+#next-btn  { grid-area: 3 / 3 / 4 / 5; }
 
 /* --- Placering i liggande läge (90° rotation av rutnätet) --- */
 @media (orientation: landscape) {
-    .c-gul   { grid-area: 2 / 1; }
-    .c-rod   { grid-area: 3 / 1; }
-    .c-svart { grid-area: 4 / 1; }
-    .c-lila  { grid-area: 2 / 2; }
-    .c-gron  { grid-area: 3 / 2; }
-    .c-bla   { grid-area: 4 / 2; }
-    #undo-btn  { grid-area: 1 / 1; } /* Ångra: överst till vänster */
-    #clear-btn { grid-area: 1 / 2; } /* Rensa: överst till höger */
+    #prev-btn  { grid-area: 1 / 1; } /* Bläddra: överst */
+    #next-btn  { grid-area: 1 / 2; }
+    #undo-btn  { grid-area: 2 / 1; } /* Ångra: andra raden till vänster */
+    #clear-btn { grid-area: 2 / 2; } /* Rensa: andra raden till höger */
+    .c-gul   { grid-area: 3 / 1; }
+    .c-rod   { grid-area: 4 / 1; }
+    .c-svart { grid-area: 5 / 1; }
+    .c-lila  { grid-area: 3 / 2; }
+    .c-gron  { grid-area: 4 / 2; }
+    .c-bla   { grid-area: 5 / 2; }
 }
 
 .color-box {
@@ -211,6 +215,7 @@ body {
 }
 
 #undo-btn { background-color: #3a3a3c; }
+.nav-btn { background-color: #3a3a3c; font-size: clamp(18px, 5vw, 38px); }
 #undo-btn:disabled { opacity: 0.4; cursor: default; }
 #clear-btn { background-color: #3a3a3c; }
 #clear-btn.confirm {
