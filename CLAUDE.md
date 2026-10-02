@@ -61,8 +61,8 @@ pushas, annars fastnar plattan på gammal cache.
 ## Lägga till en ny bild
 1. Skriv `ritaXxx(ctx)` (se `ritaTraktor`/`ritaGravmaskin`; börja med
    `stilSatt(ctx)` och `landskap(ctx, {...})`). Stil: realistiska, lugna
-   konturer i ungefär 25–40 färgbara ytor — inte fler, så det blir lätt för
-   små fingrar. Detaljer (bultar, nav, springor, slangar, galler) ritas som
+   konturer i ungefär 20–25 färgbara ytor, och ingen yta mindre än ca 4000 px
+   (på 1200×900) — inte fler/mindre, så det blir lätt för små fingrar. Detaljer (bultar, nav, springor, slangar, galler) ritas som
    `prick()` (svart prick) eller `linje(ctx, bygg, TUNN)` (tunt streck) som
    stannar en bit från kanten —
    då syns de utan att bli egna ytor att färga. Slå ihop delar som hör ihop
@@ -84,6 +84,14 @@ pushas, annars fastnar plattan på gammal cache.
   närmaste riktiga yta) — det är OK för t.ex. ljuddämparens rutnät.
 - Cirklar som ligger tätt inuti en rundad form (drev i larvbandets ände)
   lämnar en tunn ring-yta; gör cirkeln så stor att formens kant täcker den.
+- Tunna detaljstreck får inte både röra en kontur *och* korsa/röra en annan
+  detalj eller form — då stänger de en liten instängd cell (t.ex. svetsfogar
+  som når både slangen och cylindern). Låt dem sluta fritt, helst nära en
+  kant. Rita förarens huvud, strålkastare m.m. som öppna bågar (lucka) så de
+  inte blir egna ytor.
+- Små instängda luftkilar mellan maskinens delar och kullens linje blir egna
+  små ytor; justera kullens höjd bakom maskinen (`o.kulle` i `landskap`)
+  eller flytta delar så kilen hänger ihop med stora himlen/marken.
 - Kontrollera antalet ytor: se till att inte fler än ~30 är större än
   `MIN_REGION` (köra appen med en debug-hook på `labelRegions`).
 
