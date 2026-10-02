@@ -61,8 +61,11 @@ pushas, annars fastnar plattan på gammal cache.
 ## Lägga till en ny bild
 1. Skriv `ritaXxx(ctx)` (se `ritaTraktor`/`ritaGravmaskin`; börja med
    `stilSatt(ctx)` och `landskap(ctx, {...})`). Stil: realistiska, lugna
-   konturer i ungefär 30–50 färgbara ytor — inte fler, så det blir lätt för
-   små fingrar. Traktorn är ritad snett framifrån i ett eget
+   konturer i ungefär 25–40 färgbara ytor — inte fler, så det blir lätt för
+   små fingrar. Detaljer (bultar, nav, springor, slangar, galler) ritas som
+   `prick()` (svart prick) eller `linje()` som stannar en bit från kanten —
+   då syns de utan att bli egna ytor att färga. Slå ihop delar som hör ihop
+   (t.ex. skopa och tänder, rör och ljuddämpare) till en `form()`. Traktorn är ritad snett framifrån i ett eget
    koordinatsystem (`ctx.translate/scale`) och lägg den i
    `PICTURES`. Bläddra-knapparna hittar den automatiskt.
 2. Kontrollera i webbläsaren att alla ytor går att färga (inga läckor):

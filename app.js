@@ -246,10 +246,17 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillStyle = '#000';
     }
 
-    // Ett träd: stam och en krona av ihopsmälta cirklar.
+    // En liten svart prick (bult, nav, stödhjul). Ren färg, ingen yta att färga.
+    function prick(ctx, x, y, r) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Ett träd: stam och krona i ett enda färgbart stycke.
     function trad(ctx, x, y, s) {
-        form(ctx, c => rr(c, x - 7 * s, y - 40 * s, 14 * s, 80 * s, 4));
         form(ctx, c => {
+            rr(c, x - 7 * s, y - 40 * s, 14 * s, 80 * s, 4);
             cirkel(c, x - 28 * s, y - 62 * s, 32 * s);
             cirkel(c, x + 2 * s, y - 92 * s, 38 * s);
             cirkel(c, x + 32 * s, y - 60 * s, 30 * s);
@@ -269,17 +276,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Gemensamt landskap: mjuka kullar, träd, buskar, en väg och himmel.
     // `o.sol` = [x, y], `o.moln` = lista av [x, y, skala].
     function landskap(ctx, o) {
-        // Kullar och vägkant (tre långa svängar tvärs över bilden)
+        // Bortre kullen och vägkanten (två långa svängar tvärs över bilden)
         linje(ctx, c => {
             c.moveTo(-20, 430);
             c.bezierCurveTo(140, 340, 320, 340, 470, 405);
             c.bezierCurveTo(620, 470, 760, 360, 930, 360);
             c.bezierCurveTo(1060, 360, 1140, 395, 1220, 380);
-        });
-        linje(ctx, c => {
-            c.moveTo(-20, 540);
-            c.bezierCurveTo(220, 480, 420, 510, 640, 560);
-            c.bezierCurveTo(820, 600, 1040, 520, 1220, 545);
         });
         linje(ctx, c => {
             c.moveTo(-20, 815);
@@ -336,6 +338,9 @@ document.addEventListener('DOMContentLoaded', () => {
             rr(c, 332, 255, 40, 22, 8);
             rr(c, 331, 340, 52, 108, 8);
         });
+        for (let k = 0; k < 3; k++) {       // galler på ljuddämparen
+            linje(ctx, c => { c.moveTo(345, 372 + k * 22); c.lineTo(369, 372 + k * 22); });
+        }
 
         // Hytt: kaross, tak, fönster
         form(ctx, c => mangel(c, [
@@ -347,15 +352,21 @@ document.addEventListener('DOMContentLoaded', () => {
             [745, 270], [600, 262], [420, 262]
         ]));
         form(ctx, c => mangel(c, [[434, 276], [576, 270], [553, 398], [420, 394]]));
-        form(ctx, c => mangel(c, [[606, 276], [687, 280], [689, 417], [597, 419]]));
-        form(ctx, c => mangel(c, [[699, 282], [738, 288], [735, 413], [697, 415]]));
+        form(ctx, c => mangel(c, [[606, 276], [738, 288], [735, 413], [597, 419]]));
+        linje(ctx, c => { c.moveTo(690, 284); c.lineTo(691, 336); });      // dörrstolpe
         linje(ctx, c => { c.moveTo(498, 272); c.lineTo(440, 338); });      // torkare
+        linje(ctx, c => c.ellipse(505, 366, 30, 12, -0.2, 0.35, 2 * Math.PI - 0.35)); // ratt
+        linje(ctx, c => { c.moveTo(505, 367); c.lineTo(512, 384); });
         linje(ctx, c => { c.moveTo(588, 452); c.lineTo(588, 474); });      // dörrhandtag
 
         // Bakhjul (stort) med slitbanemönster
         form(ctx, c => ellips(c, 765, 640, 112, 162));
         form(ctx, c => ellips(c, 800, 630, 56, 104));
-        form(ctx, c => ellips(c, 806, 628, 24, 44));
+        for (let k = 0; k < 5; k++) {       // hjulbultar
+            const v = k * 2 * Math.PI / 5;
+            prick(ctx, 806 + Math.cos(v) * 24, 628 + Math.sin(v) * 42, 5);
+        }
+        prick(ctx, 806, 628, 7);
         for (let g = 120; g <= 240; g += 20) {
             const v = g * Math.PI / 180;
             linje(ctx, c => {
@@ -377,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Främre hjul längst bort (vänster)
         form(ctx, c => ellips(c, 232, 705, 68, 98));
         form(ctx, c => ellips(c, 245, 708, 36, 60));
-        form(ctx, c => ellips(c, 247, 710, 14, 24));
+        prick(ctx, 247, 710, 8);
 
         // Huv
         form(ctx, c => {
@@ -391,28 +402,28 @@ document.addEventListener('DOMContentLoaded', () => {
             c.closePath();
         });
         // Motorlucka på sidan och luftspringor
-        form(ctx, c => {
-            c.moveTo(432, 566);
-            c.bezierCurveTo(440, 526, 482, 514, 520, 528);
-            c.lineTo(524, 610);
-            c.lineTo(440, 616);
-            c.closePath();
+        linje(ctx, c => {
+            c.moveTo(432, 582);
+            c.bezierCurveTo(440, 530, 482, 516, 518, 530);
+            c.lineTo(522, 604);
+            c.lineTo(452, 610);
         });
         for (let k = 0; k < 3; k++) {
             linje(ctx, c => { c.moveTo(476 + k * 16, 446 + k * 3); c.lineTo(480 + k * 16, 480 + k * 3); });
         }
         // Grill (två springor) och strålkastare
-        form(ctx, c => rr(c, 257, 492, 30, 124, 15));
-        form(ctx, c => rr(c, 298, 490, 34, 128, 16));
+        form(ctx, c => rr(c, 257, 490, 78, 128, 24));
+        for (let k = 0; k < 3; k++) {       // grillspringor
+            linje(ctx, c => { c.moveTo(276 + k * 20, 514); c.lineTo(276 + k * 20, 596); });
+        }
         form(ctx, c => cirkel(c, 383, 563, 27));
         // Främre tyngd
         form(ctx, c => mangel(c, [[226, 640], [370, 632], [374, 694], [232, 670]]));
 
         // Framaxel och främre hjul närmast
-        form(ctx, c => stav(c, 285, 702, 440, 716, 28));
         form(ctx, c => ellips(c, 490, 725, 75, 106));
         form(ctx, c => ellips(c, 500, 730, 40, 66));
-        form(ctx, c => ellips(c, 502, 735, 15, 26));
+        prick(ctx, 502, 735, 9);
 
         ctx.restore();
     }
@@ -430,23 +441,24 @@ document.addEventListener('DOMContentLoaded', () => {
             c.closePath();
         });
 
-        // Underrede: ram, larvband med drev, stödhjul och klackar
-        form(ctx, c => rr(c, 310, 550, 380, 56, 10));
+        // Underrede: svängkrans/plattform, larvband med drev och stödhjul
+        form(ctx, c => rr(c, 255, 518, 470, 86, 8));
         form(ctx, c => rr(c, 235, 592, 530, 124, 62));
         form(ctx, c => cirkel(c, 297, 654, 48));
         form(ctx, c => cirkel(c, 703, 654, 48));
-        form(ctx, c => cirkel(c, 400, 672, 22));
-        form(ctx, c => cirkel(c, 500, 672, 22));
-        form(ctx, c => cirkel(c, 600, 672, 22));
+        prick(ctx, 400, 672, 15);
+        prick(ctx, 500, 672, 15);
+        prick(ctx, 600, 672, 15);
         for (let x = 285; x <= 715; x += 36) {
             linje(ctx, c => { c.moveTo(x, 594); c.lineTo(x, 608); });
             linje(ctx, c => { c.moveTo(x, 700); c.lineTo(x, 714); });
         }
 
         // Överdel: plattform, motvikt, motorrum med avgasrör
-        form(ctx, c => rr(c, 255, 518, 470, 44, 8));
-        form(ctx, c => rr(c, 436, 346, 24, 74, 6));
-        form(ctx, c => rr(c, 428, 330, 40, 22, 8));
+        form(ctx, c => {
+            rr(c, 436, 346, 24, 74, 6);
+            rr(c, 428, 330, 40, 22, 8);
+        });
         form(ctx, c => {
             c.moveTo(215, 560);
             c.lineTo(212, 462);
@@ -464,9 +476,12 @@ document.addEventListener('DOMContentLoaded', () => {
             c.lineTo(562, 560);
             c.closePath();
         });
-        for (let k = 0; k < 3; k++) {
-            form(ctx, c => rr(c, 418, 452 + k * 30, 112, 12, 6));
+        for (let k = 0; k < 3; k++) {       // luftspringor
+            linje(ctx, c => { c.moveTo(424, 456 + k * 30); c.lineTo(526, 456 + k * 30); });
         }
+        linje(ctx, c => { c.moveTo(236, 484); c.lineTo(374, 484); });      // skarv i motvikten
+        prick(ctx, 250, 446, 6);
+        prick(ctx, 250, 530, 6);
 
         // Hytt: kaross med snett framfönster, tak och varningslampa
         form(ctx, c => {
@@ -479,10 +494,9 @@ document.addEventListener('DOMContentLoaded', () => {
             c.closePath();
         });
         form(ctx, c => rr(c, 540, 310, 138, 28, 10));
-        form(ctx, c => cirkel(c, 609, 292, 13));
+        prick(ctx, 609, 292, 10);               // varningslampa
         form(ctx, c => mangel(c, [[570, 352], [652, 352], [698, 410], [698, 482], [570, 482]]));
         form(ctx, c => cirkel(c, 618, 428, 24));
-        form(ctx, c => c.arc(618, 416, 28, Math.PI, 2 * Math.PI));
         ctx.beginPath(); ctx.arc(608, 432, 4, 0, Math.PI * 2); ctx.fill();
         ctx.beginPath(); ctx.arc(628, 432, 4, 0, Math.PI * 2); ctx.fill();
         linje(ctx, c => c.arc(618, 434, 11, 0.2 * Math.PI, 0.8 * Math.PI));
@@ -496,6 +510,10 @@ document.addEventListener('DOMContentLoaded', () => {
             c.bezierCurveTo(880, 330, 800, 420, 780, 556);
             c.closePath();
         });
+        linje(ctx, c => {                       // hydraulslang längs bomen
+            c.moveTo(706, 502);
+            c.bezierCurveTo(706, 424, 786, 330, 896, 268);
+        });
         form(ctx, c => { stav(c, 722, 538, 792, 438, 30); stav(c, 792, 438, 846, 376, 15); });
 
         // Stickan (avsmalnande) med cylinder uppe på bommen
@@ -507,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
         form(ctx, c => { stav(c, 800, 275, 885, 232, 30); stav(c, 885, 232, 962, 212, 15); });
 
         // Skopa med tänder
-        form(ctx, c => {
+        form(ctx, c => {                        // skopa med tänder i samma yta
             c.moveTo(1066, 490);
             c.bezierCurveTo(1130, 478, 1210, 540, 1200, 640);
             c.bezierCurveTo(1196, 682, 1175, 700, 1150, 708);
@@ -515,14 +533,18 @@ document.addEventListener('DOMContentLoaded', () => {
             c.lineTo(1000, 690);
             c.bezierCurveTo(990, 620, 1020, 540, 1066, 490);
             c.closePath();
+            mangel(c, [[1040, 724], [1074, 720], [1054, 752]]);
+            mangel(c, [[1082, 718], [1116, 713], [1098, 746]]);
+            mangel(c, [[1124, 712], [1152, 708], [1138, 738]]);
         });
-        form(ctx, c => mangel(c, [[1040, 724], [1074, 720], [1054, 752]]));
-        form(ctx, c => mangel(c, [[1082, 718], [1116, 713], [1098, 746]]));
-        form(ctx, c => mangel(c, [[1124, 712], [1152, 708], [1138, 738]]));
+        linje(ctx, c => {                       // skopans förstärkningsrand
+            c.moveTo(1090, 530);
+            c.bezierCurveTo(1150, 540, 1170, 600, 1160, 660);
+        });
 
         // Leder (bultar)
-        form(ctx, c => cirkel(c, 945, 262, 14));
-        form(ctx, c => cirkel(c, 1078, 518, 14));
+        prick(ctx, 945, 262, 11);
+        prick(ctx, 1078, 518, 11);
     }
 
     const PICTURES = [
