@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" href="icon-192.png">
+    <title>Färga</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="start-overlay">
+    <button id="start-btn">BÖRJA FÄRGA</button>
+</div>
+
+<div id="app">
+<div id="canvas-container">
+    <canvas id="viewCanvas"></canvas>
+</div>
+
+<div id="button-container">
+    <div class="color-box c-svart" style="background-color: #000000;" data-color="#000000"></div>
+    <div class="color-box c-rod selected" style="background-color: #ff3b30;" data-color="#ff3b30"></div>
+    <div class="color-box c-gul"   style="background-color: #ffcc00;" data-color="#ffcc00"></div>
+    <div class="color-box c-bla"   style="background-color: #007aff;" data-color="#007aff"></div>
+    <div class="color-box c-gron"  style="background-color: #34c759;" data-color="#34c759"></div>
+    <div class="color-box c-lila"  style="background-color: #af52de;" data-color="#af52de"></div>
+    <button id="undo-btn" class="sys-btn" disabled>ÅNGRA</button>
+    <button id="clear-btn" class="sys-btn">RENSA</button>
+</div>
+</div>
+
+<script src="app.js" defer></script>
+</body>
+</html>

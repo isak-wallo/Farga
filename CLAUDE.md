@@ -1,0 +1,53 @@
+# Färga — färgläggningsapp för barn
+
+En enkel färgläggningsapp (PWA) för en gammal Android-platta. Syskon till
+Kludda (fri ritning, https://github.com/isak-wallo/Kludda) och bygger på samma
+skal. Språk i appen och i koden (kommentarer, knappnamn) är **svenska**.
+
+## Vad appen gör
+
+- En tecknad bild med tydliga svarta streck. Tryck på ett område → det får
+  den valda färgen. Samma 6 färger som Kludda (svart, röd, gul, blå, grön,
+  lila); röd är vald från start.
+- **ÅNGRA** (håll 1 s, upp till 10 steg) och **RENSA** (tvåstegs, håll 1 s +
+  SÄKER?) fungerar som i Kludda. RENSA tömmer bilden på färg.
+- Landskapslås, fullscreen, layoutlås/dö-yta, back-fälla och offline-SW är
+  kopierade från Kludda — se Kluddas CLAUDE.md för detaljerna.
+- Hostas via GitHub Pages: `https://isak-wallo.github.io/Farga/`.
+  **Inget byggsteg** — commit + push är driftsättning.
+
+### VIKTIGT vid uppdatering: bumpa SW-versionen
+`sw.js` har `const VERSION = 'vNN'`. Höj den varje gång filer ändras och
+pushas, annars fastnar plattan på gammal cache.
+
+## Arkitektur (`app.js`)
+
+- **Tre lager** i 1200×900: `lineCanvas` (bara de svarta strecken,
+  genomskinlig bakgrund), `fillCanvas` (färgerna) och synliga `viewCanvas`
+  som ritar fill + linjer ovanpå. Bilden passas in utan beskärning; i
+  stående vy roteras den 90° (`updateTransform`/`getPaperCoords`).
+- **Bilder** är funktioner som ritar på `lineCanvas` och listas i
+  `PICTURES`. Hjälpare: `form()` ritar en *sluten* form och raderar det som
+  ligger bakom (destination-out), så överlappande delar skymmer varandra;
+  `linje()` ritar ett löst streck. Det som ska gå att färga måste vara helt
+  omslutet av linjer (inga glapp, linjebredd `LW`).
+- **Områden** numreras en gång vid laddning (`labelRegions`, scanline-flood,
+  4-grannar). `labels[i]` = områdesnummer (0 = linje). Tryck → slå upp
+  området (`regionAt`, med snap till närmaste yta om man träffar en linje),
+  färga om bara det (`paintRegion`). Pixlar med alpha < `LINE_ALPHA` räknas
+  som yta så färgen går in under linjens anti-aliasade kant.
+- **Ångra** sparar bara områdenas färgtabell (`regionInt.slice()`), inte
+  pixlar.
+- **Tryck** räknas först vid `touchend` om fingret knappt rört sig
+  (`TAP_MAX_MOVE`) och lyfts inom `TAP_MAX_MS` — vilande hand/glidande
+  finger färgar inget. Knappar har `stopPropagation` på `touchstart` precis
+  som i Kludda.
+
+## Lägga till en ny bild
+1. Skriv `ritaXxx(ctx)` (se `ritaTraktor`) och lägg den i `PICTURES`.
+2. Kontrollera i webbläsaren att alla ytor går att färga (inga läckor).
+3. Bumpa `VERSION` i `sw.js`.
+
+## Konventioner
+- Svenska i UI och kommentarer. Ingen byggpipeline, inga dependencies.
+- Tänk på multi-touch och `stopPropagation` på nya knappar.

@@ -1,0 +1,224 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+    user-select: none;
+    -webkit-user-select: none;
+    background-color: #000;
+}
+/* #app sätts av JS till hela skärmens storlek och ligger fast i övre
+   vänstra hörnet, så ritytan ligger bakom statusfältet och behåller sin
+   storlek även när systemfälten visas. */
+#app {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;   /* reserv tills JS sätter px-storlek */
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background-color: #000;  /* dö-yta (padding-bottom) blir svart */
+    touch-action: none;      /* pinch-zoom-skydd även i knapp-panelens mellanrum */
+}
+@media (orientation: landscape) {
+    #app {
+        flex-direction: row;
+    }
+}
+
+/* Startskärm som täcker hela appen och hanterar helskärm */
+#start-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+#start-btn {
+    padding: 25px 60px;
+    font-size: 7vw;
+    font-family: sans-serif;
+    font-weight: bold;
+    color: white;
+    background-color: #34c759;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    transition: transform 0.1s;
+}
+#start-btn:active {
+    transform: scale(0.95);
+}
+@media (orientation: landscape) {
+    #start-btn {
+        font-size: 7vh;
+    }
+}
+
+/* Ritytan tar exakt 80% */
+#canvas-container {
+    flex: 0 0 80%;
+    height: 80%;
+    position: relative;
+    background-color: #fff;
+    touch-action: none;
+    contain: strict;
+}
+@media (orientation: landscape) {
+    #canvas-container {
+        flex: 0 0 80%;
+        height: 100%;
+    }
+}
+#viewCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Panel med 4x2-rutnät: 6 färger + RENSA som upptar 2 celler.
+   Stående: 4 kolumner x 2 rader. Liggande: 2 kolumner x 4 rader.
+   Placeringen är explicit i båda lägena så att varje färg
+   hamnar på samma fysiska plats när man roterar. */
+#button-container {
+    flex: 0 0 20%;
+    height: 20%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    background-color: #1c1c1e;
+    padding: 6px;
+    gap: 6px;
+}
+@media (orientation: landscape) {
+    #button-container {
+        flex: 0 0 20%;
+        height: 100%;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+    }
+}
+
+/* --- Placering i stående läge (grid-area: rad / kol) --- */
+.c-svart { grid-area: 1 / 1; }
+.c-rod   { grid-area: 1 / 2; }
+.c-gul   { grid-area: 1 / 3; }
+.c-bla   { grid-area: 2 / 1; }
+.c-gron  { grid-area: 2 / 2; }
+.c-lila  { grid-area: 2 / 3; }
+#undo-btn  { grid-area: 1 / 4; } /* Ångra: övre cellen till höger */
+#clear-btn { grid-area: 2 / 4; } /* Rensa: nedre cellen till höger */
+
+/* --- Placering i liggande läge (90° rotation av rutnätet) --- */
+@media (orientation: landscape) {
+    .c-gul   { grid-area: 2 / 1; }
+    .c-rod   { grid-area: 3 / 1; }
+    .c-svart { grid-area: 4 / 1; }
+    .c-lila  { grid-area: 2 / 2; }
+    .c-gron  { grid-area: 3 / 2; }
+    .c-bla   { grid-area: 4 / 2; }
+    #undo-btn  { grid-area: 1 / 1; } /* Ångra: överst till vänster */
+    #clear-btn { grid-area: 1 / 2; } /* Rensa: överst till höger */
+}
+
+.color-box {
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    border-radius: 10px;
+    /* Ovalda färger tonas ner en aning (behåller färgen, blir bara
+       mörkare) så att den aktiva färgen syns tydligt. Kanten gör
+       att även svart syns mot panelen. */
+    filter: brightness(0.6);
+    border: 2px solid rgba(255,255,255,0.2);
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s ease, box-shadow 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
+}
+.color-box.selected {
+    filter: brightness(1);
+    border-color: #ffffff;
+    transform: scale(1.08);
+    box-shadow: 0 0 14px rgba(255,255,255,0.6);
+    z-index: 2;
+}
+/* Svart ruta: ljusare kant så den syns mot den mörka panelen */
+.color-box.c-svart:not(.selected) {
+    border-color: rgba(255,255,255,0.35);
+}
+.color-box:active {
+    transform: scale(0.9);
+}
+
+/* Systemknappen (ÅNGRA / RENSA) */
+.sys-btn {
+    width: 100%;
+    height: 100%;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: clamp(13px, 3.5vw, 26px);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+.sys-btn:active:not(:disabled) {
+    transform: scale(0.9);
+}
+@media (orientation: landscape) {
+    .sys-btn {
+        font-size: clamp(13px, 3.2vh, 26px);
+    }
+}
+
+/* Håll-in-feedback: en rad växer uppifrån/nedifrån och fylls på medan
+   fingret hålls. När den fyllt knappen aktiveras funktionen. Längden
+   styrs av CSS-variabeln --hold-ms som sätts från HOLD_MS i app.js
+   (1 s som reserv om JS inte hunnit sätta den). Visar barnet att man
+   ska hålla kvar. */
+.sys-btn.holding::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 0;
+    background-color: rgba(255, 255, 255, 0.35);
+    animation: hold-fill var(--hold-ms, 1s) linear forwards;
+    pointer-events: none;
+}
+@keyframes hold-fill {
+    from { height: 0; }
+    to   { height: 100%; }
+}
+
+#undo-btn { background-color: #3a3a3c; }
+#undo-btn:disabled { opacity: 0.4; cursor: default; }
+#clear-btn { background-color: #3a3a3c; }
+#clear-btn.confirm {
+    background-color: #ff3b30;
+    animation: pulse-confirm 0.3s ease;
+}
+@keyframes pulse-confirm {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
