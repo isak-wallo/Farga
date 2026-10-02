@@ -22,6 +22,11 @@ skal. Språk i appen och i koden (kommentarer, knappnamn) är **svenska**.
 - Hostas via GitHub Pages: `https://isak-wallo.github.io/Farga/`.
   **Inget byggsteg** — commit + push är driftsättning.
 
+### Arbetsflöde: bara `main`
+Jobba direkt på `main` (inga sidgrenar). Commit-meddelanden på svenska,
+signera med `Co-Authored-By: Claude <noreply@anthropic.com>`. Ägaren testar
+från GitHub Pages och förväntar sig att nya versioner ligger ute.
+
 ### VIKTIGT vid uppdatering: bumpa SW-versionen
 `sw.js` har `const VERSION = 'vNN'`. Höj den varje gång filer ändras och
 pushas, annars fastnar plattan på gammal cache.
@@ -35,7 +40,8 @@ pushas, annars fastnar plattan på gammal cache.
 - **Bilder** är funktioner som ritar på `lineCanvas` och listas i
   `PICTURES`. Hjälpare: `form()` ritar en *sluten* form och raderar det som
   ligger bakom (destination-out), så överlappande delar skymmer varandra;
-  `linje()` ritar ett löst streck; `stav()` (cylinder/stång) och `mangel()`
+  `linje()` ritar ett löst streck; `ellips()`, `trad()`, `grastuss()` och
+  `landskap()` (kullar, träd, sol, moln, väg — gemensamt för alla bilder); `stav()` (cylinder/stång) och `mangel()`
   (månghörning) lägger till banor i en `form()`. Ange banor **medurs** —
   blandade riktningar som överlappar i samma form kan ta ut varandra
   (nonzero-fyllning) så att det blir hål. Det som ska gå att färga måste vara helt
@@ -53,7 +59,11 @@ pushas, annars fastnar plattan på gammal cache.
   som i Kludda.
 
 ## Lägga till en ny bild
-1. Skriv `ritaXxx(ctx)` (se `ritaTraktor`/`ritaGravmaskin`) och lägg den i
+1. Skriv `ritaXxx(ctx)` (se `ritaTraktor`/`ritaGravmaskin`; börja med
+   `stilSatt(ctx)` och `landskap(ctx, {...})`). Stil: realistiska, lugna
+   konturer i ungefär 30–50 färgbara ytor — inte fler, så det blir lätt för
+   små fingrar. Traktorn är ritad snett framifrån i ett eget
+   koordinatsystem (`ctx.translate/scale`) och lägg den i
    `PICTURES`. Bläddra-knapparna hittar den automatiskt.
 2. Kontrollera i webbläsaren att alla ytor går att färga (inga läckor):
    ytor som inte ska hänga ihop måste vara helt omslutna. Tänk på att en
