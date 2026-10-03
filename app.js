@@ -176,6 +176,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const TUNN = 4;   // tunn linje för detaljer (springor, fogar, slitbana)
     const LINJEFARG = '#3a3a44';   // mjukt mörkgrå konturer i stället för kolsvart
     let fargLage = false;
+    // Kantens bredd för form() (synlig del, utanför banan). Bilder i den
+    // finare målarboksstilen (flygplanet) sätter en tunnare kant.
+    let kant = LW;
 
     // Givna färger — lugna, lite mjukare än rena grundfärger.
     const F = {
@@ -193,7 +196,15 @@ document.addEventListener('DOMContentLoaded', () => {
         falg:   '#f2d06b',
         stal:   '#a3a9b0',
         ljusstal: '#ccd1d6',
-        morkstal: '#6f747c'
+        morkstal: '#6f747c',
+        flygkropp: '#eef2f7',
+        buk:    '#7aa6da',
+        fena:   '#5b8fd0',
+        vinge:  '#c5ccd5',
+        ruta:   '#4d6886',
+        pylon:  '#dde2e8',
+        fjarrkulle: '#c6e2b3',
+        akerkulle:  '#a9d494'
     };
 
     function rr(ctx, x, y, w, h, r) {
@@ -243,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fill();
             return;
         }
-        ctx.lineWidth = LW * 2;
+        ctx.lineWidth = kant * 2;
         ctx.stroke();
         ctx.globalCompositeOperation = 'destination-out';
         ctx.fill();
@@ -256,6 +267,19 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.beginPath();
         bygg(ctx);
         ctx.lineWidth = bredd || LW;
+        ctx.stroke();
+    }
+
+    // En liten sluten yta med tunn kant (fönster). Raderar inget bakom sig.
+    function tunnForm(ctx, bygg, farg, bredd) {
+        ctx.beginPath();
+        bygg(ctx);
+        if (fargLage) {
+            ctx.fillStyle = farg;
+            ctx.fill();
+            return;
+        }
+        ctx.lineWidth = bredd || TUNN;
         ctx.stroke();
     }
 
@@ -732,9 +756,171 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.restore();
     }
 
+    // Lugn bakgrund för flygplanet, i finare målarboksstil: tunna linjer,
+    // två kullar långt ner, några små träd, moln och en sol utan ansikte.
+    function luftBakgrund(ctx) {
+        const bortre = c => {
+            c.moveTo(-20, 735);
+            c.bezierCurveTo(150, 690, 330, 690, 480, 730);
+            c.bezierCurveTo(640, 770, 820, 700, 1000, 712);
+            c.bezierCurveTo(1100, 718, 1160, 730, 1220, 724);
+        };
+        const narmre = c => {
+            c.moveTo(-20, 818);
+            c.bezierCurveTo(300, 780, 700, 850, 1220, 792);
+        };
+        if (fargLage) {
+            ctx.fillStyle = F.himmel;
+            ctx.fillRect(0, 0, PAPER_W, PAPER_H);
+            [[bortre, F.fjarrkulle], [narmre, F.akerkulle]].forEach(([bana, farg]) => {
+                ctx.beginPath();
+                bana(ctx);
+                ctx.lineTo(1220, 1000);
+                ctx.lineTo(-20, 1000);
+                ctx.closePath();
+                ctx.fillStyle = farg;
+                ctx.fill();
+            });
+        }
+        linje(ctx, bortre, 5);
+        linje(ctx, narmre, 5);
+
+        // Små träd på bortre kullen
+        trad(ctx, 170, 712, 0.42);
+        trad(ctx, 215, 716, 0.32);
+        trad(ctx, 930, 722, 0.38);
+        // Fåror på åkern (fria ändar)
+        [[60, 860, 260, 845], [420, 870, 640, 868], [820, 850, 1080, 832],
+         [180, 892, 420, 884], [700, 890, 960, 878]].forEach(f => {
+            linje(ctx, c => {
+                c.moveTo(f[0], f[1]);
+                c.quadraticCurveTo((f[0] + f[2]) / 2, (f[1] + f[3]) / 2 - 8, f[2], f[3]);
+            }, 3);
+        });
+
+        // Sol (utan ansikte) med korta strålar
+        form(ctx, c => cirkel(c, 1095, 100, 44), F.sol);
+        for (let k = 0; k < 12; k++) {
+            const v = k * Math.PI / 6 + 0.1;
+            linje(ctx, c => {
+                c.moveTo(1095 + Math.cos(v) * 58, 100 + Math.sin(v) * 58);
+                c.lineTo(1095 + Math.cos(v) * 76, 100 + Math.sin(v) * 76);
+            }, 4);
+        }
+
+        // Moln
+        [[650, 140, 0.9], [1040, 600, 0.75], [150, 600, 0.65]].forEach(m => {
+            const x = m[0], y = m[1], s = m[2];
+            form(ctx, c => {
+                cirkel(c, x - 55 * s, y, 32 * s);
+                cirkel(c, x, y - 28 * s, 42 * s);
+                cirkel(c, x + 55 * s, y - 4 * s, 34 * s);
+                rr(c, x - 87 * s, y - 2 * s, 176 * s, 36 * s, 18 * s);
+            }, F.moln);
+        });
+    }
+
+    // Flygplan (ungefär en Airbus A330) från sidan, på väg uppåt åt höger.
+    // Lite verkligare stil: tunnare kant och fler, mindre ytor (fönster,
+    // dörrar, motorns delar). Ritat i ett eget koordinatsystem där kroppen
+    // går från x = 0 (stjärten) till x = 1000 (nosen), mittlinjen y = 0.
+    function ritaFlygplan(ctx) {
+        stilSatt(ctx);
+        kant = 4;
+        luftBakgrund(ctx);
+        kant = 5;
+
+        ctx.save();
+        ctx.translate(95, 360);
+        ctx.rotate(-0.06);
+
+        // Bortre vingen (bakom kroppen) med winglet
+        form(ctx, c => {
+            mangel(c, [[410, -40], [300, -165], [345, -172], [580, -40]]);
+            mangel(c, [[300, -166], [310, -208], [328, -210], [345, -172]]);
+        }, F.vinge);
+
+        // Kroppen
+        const nosUnder = [[1000, 0], [1008, 20], [975, 46], [920, 48]];
+        const stjartUnder = [[330, 48], [200, 48], [70, 20], [6, -2]];
+        const kropp = c => {
+            c.moveTo(0, -14);
+            c.bezierCurveTo(60, -30, 140, -46, 220, -48);
+            c.lineTo(860, -48);
+            c.bezierCurveTo(930, -48, 985, -30, 1000, 0);
+            c.bezierCurveTo(1008, 20, 975, 46, 920, 48);
+            c.lineTo(330, 48);
+            c.bezierCurveTo(200, 48, 70, 20, 6, -2);
+            c.closePath();
+        };
+        form(ctx, kropp, F.flygkropp);
+        // Gräns mot den blå buken (når kroppens kant i båda ändar)
+        const b0 = bez(nosUnder, 0.35), b1 = bez(stjartUnder, 0.55);
+        const bukLinje = c => {
+            c.moveTo(b0[0], b0[1]);
+            c.bezierCurveTo(960, 26, 920, 26, 880, 26);
+            c.lineTo(300, 26);
+            c.bezierCurveTo(220, 26, 170, 27, b1[0], b1[1]);
+        };
+        if (fargLage) {     // buken: allt under linjen, innanför kroppen
+            ctx.save();
+            ctx.beginPath();
+            kropp(ctx);
+            ctx.clip();
+            ctx.beginPath();
+            bukLinje(ctx);
+            ctx.lineTo(-100, 200);
+            ctx.lineTo(1100, 200);
+            ctx.closePath();
+            ctx.fillStyle = F.buk;
+            ctx.fill();
+            ctx.restore();
+        }
+        linje(ctx, bukLinje, 4);
+        // Nosens kon (öppen båge) och stjärtkonen
+        linje(ctx, c => { c.moveTo(986, -16); c.quadraticCurveTo(978, 2, 988, 18); }, 3);
+
+        // Fönsterrad och dörrar
+        const dorrar = [268, 470, 700, 868];
+        dorrar.forEach(x => linje(ctx, c => rr(c, x - 13, -38, 26, 50, 7), 3));
+        for (let x = 296; x <= 846; x += 23) {
+            if (dorrar.some(d => Math.abs(d - x) < 26)) continue;
+            tunnForm(ctx, c => rr(c, x - 5, -24, 11, 16, 5), F.ruta, 3);
+        }
+        // Cockpitfönster
+        tunnForm(ctx, c => mangel(c, [[900, -30], [928, -30], [934, -16], [900, -16]]), F.ruta, 3);
+        tunnForm(ctx, c => mangel(c, [[938, -28], [950, -24], [958, -14], [938, -14]]), F.ruta, 3);
+
+        // Fena med en tunn linje för rodret
+        form(ctx, c => rmangel(c, [[20, -22], [30, -250], [95, -252], [240, -46]], 8), F.fena);
+        linje(ctx, c => { c.moveTo(48, -230); c.lineTo(42, -60); }, 3);
+        // Höjdroder (närmre)
+        form(ctx, c => rmangel(c, [[70, -8], [190, -2], [50, 74], [0, 72]], 6), F.vinge);
+        linje(ctx, c => { c.moveTo(62, 12); c.lineTo(22, 60); }, 3);
+
+        // Närmre vingen med klaffar och winglet
+        form(ctx, c => rmangel(c, [[380, 28], [610, 22], [275, 300], [222, 304], [318, 112]], 6), F.vinge);
+        linje(ctx, c => { c.moveTo(392, 50); c.lineTo(340, 118); c.lineTo(262, 268); }, 3);
+        [[366, 84], [318, 160], [290, 214]].forEach(([x, y]) => {
+            linje(ctx, c => { c.moveTo(x, y); c.lineTo(x - 22, y - 8); }, 3);
+        });
+        form(ctx, c => mangel(c, [[226, 300], [236, 252], [254, 250], [270, 299]]), F.fena);
+
+        // Motor: pylon, utblås, gondol, luftintag med fläkt
+        form(ctx, c => mangel(c, [[470, 118], [560, 118], [590, 140], [470, 146]]), F.pylon);
+        form(ctx, c => mangel(c, [[392, 168], [446, 155], [446, 194], [392, 182]]), F.stal);
+        form(ctx, c => rmangel(c, [[440, 145], [606, 138], [606, 212], [440, 203]], 26), F.buk);
+        linje(ctx, c => { c.moveTo(470, 152); c.lineTo(470, 196); }, 3);
+        form(ctx, c => ellips(c, 610, 175, 18, 38), F.ljusstal);
+        form(ctx, c => ellips(c, 614, 175, 9, 26), F.morkstal);
+
+        ctx.restore();
+    }
+
     const PICTURES = [
         { namn: 'Traktor', rita: ritaTraktor },
-        { namn: 'Grävmaskin', rita: ritaGravmaskin }
+        { namn: 'Grävmaskin', rita: ritaGravmaskin },
+        { namn: 'Flygplan', rita: ritaFlygplan }
     ];
     let currentPicture = 0;
 
@@ -859,10 +1045,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const rita = PICTURES[index].rita;
         lCtx.setTransform(1, 0, 0, 1, 0, 0);
         lCtx.clearRect(0, 0, PAPER_W, PAPER_H);
+        kant = LW;
         rita(lCtx);
         cCtx.setTransform(1, 0, 0, 1, 0, 0);
         cCtx.clearRect(0, 0, PAPER_W, PAPER_H);
         fargLage = true;
+        kant = LW;
         rita(cCtx);
         fargLage = false;
         labelRegions();

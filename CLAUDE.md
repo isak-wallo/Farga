@@ -47,7 +47,9 @@ pushas, annars fastnar plattan på gammal cache.
 - **Bilder** är funktioner som listas i `PICTURES` och ritas **två gånger**:
   först konturerna på `lineCanvas`, sedan med `fargLage = true` på
   `colorCanvas` — då fyller `form(ctx, bygg, farg)` banan med sin färg och
-  `linje()`/`prick()` gör ingenting. Färgerna finns i `F`. `landskap()`
+  `linje()`/`prick()` gör ingenting. Färgerna finns i `F`. `tunnForm()` är
+  en liten sluten yta med tunn kant som inte raderar bakom sig (fönster).
+  `kant` styr formernas kantbredd (nollställs till `LW` före varje bild). `landskap()`
   fyller himmel, kulle och väg i färgläget. Hjälpare: `form()` ritar en
   *sluten* form och raderar det som ligger bakom (destination-out), så
   överlappande delar skymmer varandra; `linje()` ritar ett löst streck;
@@ -68,6 +70,14 @@ pushas, annars fastnar plattan på gammal cache.
   `commitRegion` skriver in resten när den är klar). Ytor under
   `MIN_REGION` (små celler mellan detaljstreck) fylls direkt när penseln
   nuddar dem. Ritning sker en gång per frame (`requestRender`, `dirty`).
+
+## Bildstil
+Traktorn och grävmaskinen har tjocka konturer (`LW`). Flygplanet
+(`ritaFlygplan` + `luftBakgrund`) är ritat i en finare målarboksstil som
+ägaren vill gå mot: tunnare jämna konturer (`kant = 4–5`), lite verkligare
+proportioner, fler och mindre ytor (fönster, dörrar, motordelar) är OK nu när
+man målar över i stället för att trycka, sol utan ansikte och en lugn
+bakgrund med tunna linjer.
 
 ## Lägga till en ny bild
 1. Skriv `ritaXxx(ctx)` (se `ritaTraktor`/`ritaGravmaskin`; börja med
