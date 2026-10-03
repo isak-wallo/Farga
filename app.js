@@ -195,6 +195,8 @@ document.addEventListener('DOMContentLoaded', () => {
         stal:   '#a3a9b0',
         ljusstal: '#ccd1d6',
         morkstal: '#6f747c',
+        stam:   '#a8845c',
+        grus:   '#e8d6ad',
         flygkropp: '#eef2f7',
         buk:    '#7aa6da',
         fena:   '#5b8fd0',
@@ -1045,6 +1047,149 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    // --- Verkliga bilder (från förlagor ägaren skickade) ---
+    // Konturerna kommer från en bildfil (bilder/*.png, genomskinlig med
+    // mörkgrå linjer, 1200x900) i stället för att ritas med kod. Färgerna
+    // kommer från en grov färgkarta: former som ungefär täcker varje del.
+    // Varje yta tar den färg som dominerar i kartan; ytor som läcker ihop
+    // (glapp i blyertslinjerna) färgas pixel för pixel efter kartan.
+    function fyllPoly(ctx, farg, pts) {
+        ctx.beginPath();
+        mangel(ctx, pts);
+        ctx.fillStyle = farg;
+        ctx.fill();
+    }
+    function fyllEllips(ctx, farg, x, y, rx, ry) {
+        ctx.beginPath();
+        ellips(ctx, x, y, rx, ry);
+        ctx.fillStyle = farg;
+        ctx.fill();
+    }
+
+    function ritaTraktorVerklig(ctx, pic) {
+        if (!fargLage) { ctx.drawImage(pic.img, 0, 0); return; }
+        // Mark, himmel och bortre kulle
+        ctx.fillStyle = F.akerkulle;
+        ctx.fillRect(0, 0, PAPER_W, PAPER_H);
+        fyllPoly(ctx, F.himmel, [[0, 0], [1200, 0], [1200, 268], [1170, 272], [950, 278], [940, 290],
+            [440, 262], [300, 236], [200, 204], [100, 186], [0, 182]]);
+        fyllPoly(ctx, F.fjarrkulle, [[0, 182], [100, 186], [200, 204], [300, 236], [440, 262], [440, 332],
+            [330, 332], [150, 286], [0, 272]]);
+        // Träd, buskar och ladan
+        fyllEllips(ctx, F.trad, 110, 192, 58, 48);
+        fyllEllips(ctx, F.trad, 188, 238, 30, 40);
+        fyllEllips(ctx, F.trad, 90, 405, 62, 26);
+        fyllEllips(ctx, F.trad, 1000, 200, 28, 70);
+        fyllEllips(ctx, F.trad, 1150, 140, 30, 22);
+        fyllEllips(ctx, F.trad, 965, 245, 30, 22);
+        fyllEllips(ctx, F.trad, 1150, 262, 30, 14);
+        fyllPoly(ctx, F.morkrod, [[1020, 195], [1068, 152], [1110, 190], [1172, 168], [1172, 275], [1020, 278]]);
+        fyllPoly(ctx, F.ljusstal, [[1040, 150], [1075, 148], [1172, 158], [1172, 170], [1110, 185], [1068, 152]]);
+        fyllPoly(ctx, F.flygkropp, [[1045, 235], [1095, 235], [1095, 278], [1045, 278]]);
+        fyllEllips(ctx, F.glas, 1072, 198, 12, 14);
+
+        // Hjulen
+        fyllEllips(ctx, F.dack, 205, 705, 105, 135);
+        fyllEllips(ctx, F.falg, 238, 712, 48, 68);
+        fyllEllips(ctx, F.dack, 565, 762, 120, 142);
+        fyllEllips(ctx, F.falg, 582, 765, 62, 88);
+        fyllEllips(ctx, F.stal, 582, 762, 22, 34);
+        fyllEllips(ctx, F.dack, 940, 605, 180, 225);
+        fyllEllips(ctx, F.falg, 992, 612, 80, 120);
+        fyllEllips(ctx, F.stal, 965, 612, 28, 42);
+
+        // Ram, steg, axel, stötfångare
+        fyllPoly(ctx, F.morkstal, [[600, 540], [700, 540], [712, 720], [650, 722], [600, 640]]);
+        fyllPoly(ctx, F.stal, [[690, 548], [762, 545], [778, 702], [720, 706]]);
+        fyllPoly(ctx, F.morkstal, [[250, 688], [470, 660], [482, 722], [262, 722]]);
+        fyllPoly(ctx, F.morkstal, [[205, 612], [402, 624], [407, 702], [214, 692]]);
+
+        // Huv, motorrum, grill och strålkastare
+        fyllPoly(ctx, F.rod, [[226, 400], [300, 345], [600, 318], [624, 345], [626, 545], [470, 602],
+            [240, 618], [228, 520]]);
+        fyllPoly(ctx, F.morkstal, [[482, 470], [520, 450], [612, 468], [615, 600], [480, 606]]);
+        fyllPoly(ctx, F.stal, [[238, 415], [290, 410], [292, 592], [245, 590]]);
+        fyllPoly(ctx, F.stal, [[300, 412], [356, 418], [358, 600], [305, 600]]);
+        fyllEllips(ctx, F.ljusstal, 205, 503, 25, 26);
+        fyllEllips(ctx, F.glas, 205, 503, 14, 15);
+        fyllEllips(ctx, F.ljusstal, 420, 520, 42, 44);
+        fyllEllips(ctx, F.glas, 422, 522, 25, 29);
+
+        // Avgasrör
+        fyllPoly(ctx, F.stal, [[343, 92], [372, 86], [392, 112], [392, 190], [412, 195], [412, 332],
+            [354, 332], [354, 190], [343, 122]]);
+
+        // Stänkskärm
+        fyllPoly(ctx, F.rod, [[758, 525], [790, 420], [860, 358], [960, 343], [1042, 368], [1072, 410],
+            [1060, 428], [1000, 396], [920, 386], [862, 420], [812, 482], [792, 548]]);
+
+        // Hytt: ram, tak, rutor
+        fyllPoly(ctx, F.rod, [[458, 92], [942, 98], [946, 332], [862, 348], [628, 545], [468, 322]]);
+        fyllPoly(ctx, F.ljusstal, [[458, 58], [520, 36], [700, 20], [930, 66], [942, 106], [466, 98]]);
+        fyllEllips(ctx, F.sol, 680, 46, 20, 10);
+        fyllEllips(ctx, F.sol, 492, 70, 18, 10);
+        fyllPoly(ctx, F.glas, [[478, 104], [692, 98], [692, 304], [472, 304]]);
+        fyllPoly(ctx, F.glas, [[708, 100], [844, 100], [848, 304], [704, 304]]);
+        fyllPoly(ctx, F.glas, [[852, 108], [922, 110], [926, 302], [856, 302]]);
+        fyllPoly(ctx, F.glas, [[700, 360], [796, 360], [796, 506], [702, 506]]);
+        fyllPoly(ctx, F.glas, [[630, 344], [666, 344], [666, 512], [632, 512]]);
+    }
+
+    function ritaGravmaskinVerklig(ctx, pic) {
+        if (!fargLage) { ctx.drawImage(pic.img, 0, 0); return; }
+        // Mark, himmel, kullar, jordhög och grusväg
+        ctx.fillStyle = F.akerkulle;
+        ctx.fillRect(0, 0, PAPER_W, PAPER_H);
+        fyllPoly(ctx, F.himmel, [[0, 0], [1200, 0], [1200, 250], [1143, 250], [950, 280], [900, 290],
+            [660, 330], [500, 323], [387, 300], [253, 273], [53, 240], [0, 240]]);
+        fyllPoly(ctx, F.fjarrkulle, [[0, 240], [53, 240], [253, 273], [387, 300], [500, 323], [660, 330],
+            [950, 280], [1143, 250], [1200, 250], [1200, 332], [1143, 330], [950, 340], [660, 380],
+            [500, 372], [387, 398], [243, 360], [50, 323], [0, 323]]);
+        fyllPoly(ctx, F.grus, [[380, 760], [560, 820], [700, 900], [1200, 900], [1200, 780], [1080, 768]]);
+        fyllPoly(ctx, F.jord, [[96, 900], [136, 822], [220, 790], [330, 800], [380, 778], [432, 800],
+            [462, 860], [482, 900]]);
+        // Träd och buskar
+        fyllEllips(ctx, F.trad, 140, 250, 50, 45);
+        fyllEllips(ctx, F.trad, 197, 292, 32, 36);
+        fyllEllips(ctx, F.trad, 95, 466, 52, 24);
+        fyllEllips(ctx, F.trad, 1012, 318, 48, 22);
+        fyllEllips(ctx, F.trad, 1040, 430, 48, 30);
+        [[830, 60, 60, 38], [930, 40, 80, 45], [1050, 40, 90, 50], [960, 110, 70, 38],
+         [870, 115, 45, 28], [1130, 110, 40, 45], [1080, 120, 50, 30]].forEach(e => fyllEllips(ctx, F.trad, e[0], e[1], e[2], e[3]));
+        fyllPoly(ctx, F.stam, [[1036, 150], [1062, 180], [1078, 250], [1084, 330], [1078, 444],
+            [1122, 444], [1116, 330], [1110, 250], [1120, 170], [1146, 110], [1122, 98], [1100, 158],
+            [1058, 138]]);
+
+        // Larvband, ram, rullar och svängkrans
+        fyllPoly(ctx, F.dack, [[368, 690], [450, 648], [652, 638], [662, 700], [642, 792], [560, 792],
+            [420, 762], [368, 742]]);
+        fyllPoly(ctx, F.morkstal, [[440, 690], [650, 680], [650, 790], [440, 780]]);
+        fyllPoly(ctx, F.dack, [[636, 720], [700, 678], [1002, 658], [1082, 700], [1082, 800], [982, 862],
+            [760, 892], [648, 862], [628, 780]]);
+        fyllPoly(ctx, F.morkstal, [[748, 752], [1002, 724], [1002, 802], [760, 832]]);
+        fyllEllips(ctx, F.stal, 1030, 730, 34, 44);
+        fyllPoly(ctx, F.morkstal, [[640, 608], [1004, 600], [1004, 660], [640, 668]]);
+
+        // Överdel: motorrum, hytt, motorhuv, tak och rutor
+        fyllPoly(ctx, F.gul, [[488, 380], [660, 300], [952, 292], [956, 420], [1000, 436], [1032, 470],
+            [1032, 610], [800, 650], [640, 640], [490, 615]]);
+        fyllPoly(ctx, F.ljusstal, [[668, 262], [948, 268], [952, 302], [664, 300]]);
+        fyllPoly(ctx, F.glas, [[664, 310], [802, 305], [802, 590], [654, 590]]);
+        fyllPoly(ctx, F.glas, [[815, 310], [886, 310], [886, 470], [815, 470]]);
+        fyllPoly(ctx, F.glas, [[810, 482], [886, 482], [886, 552], [810, 556]]);
+        fyllPoly(ctx, F.glas, [[900, 315], [936, 315], [936, 476], [904, 480]]);
+
+        // Bom, sticka, skopa och länkar (gula), cylindrar (stål)
+        fyllPoly(ctx, F.gul, [[300, 40], [392, 14], [410, 70], [600, 186], [646, 240], [660, 330],
+            [646, 410], [600, 424], [560, 412], [530, 330], [470, 244], [404, 190], [394, 244], [360, 254],
+            [346, 500], [334, 600], [380, 780], [400, 850], [250, 850], [130, 760], [120, 650], [190, 580],
+            [230, 500], [300, 200]]);
+        fyllPoly(ctx, F.ljusstal, [[262, 205], [292, 198], [286, 330], [276, 402], [238, 396], [246, 330]]);
+        fyllPoly(ctx, F.ljusstal, [[396, 52], [422, 44], [618, 196], [600, 228]]);
+        fyllPoly(ctx, F.ljusstal, [[592, 262], [628, 258], [652, 420], [618, 428]]);
+        fyllPoly(ctx, F.ljusstal, [[540, 400], [570, 394], [606, 604], [576, 612]]);
+    }
+
     // Bilderna. `clawd` = var den lilla kompisen Clawd gömmer sig:
     // (x, y) = mitt under fötterna, s = skala, `ytor` = punkter i de ytor han
     // syns i (han ritas bara där, så det som ligger framför skymmer honom).
@@ -1058,8 +1203,20 @@ document.addEventListener('DOMContentLoaded', () => {
         { namn: 'Flygplan', rita: ritaFlygplan,
           clawd: { x: 1040, y: 574, s: 0.34, ytor: [[1040, 500]] } },     // bakom molnet
         { namn: 'Helikopter', rita: ritaHelikopter,
-          clawd: { x: 466, y: 470, s: 0.32, ytor: [[466, 380]] } }         // i dörrens ruta
+          clawd: { x: 466, y: 470, s: 0.32, ytor: [[466, 380]] } },        // i dörrens ruta
+        { namn: 'Traktor (verklig)', rita: ritaTraktorVerklig, bild: 'bilder/traktor-verklig.png',
+          clawd: { x: 600, y: 304, s: 0.42, ytor: [[520, 150], [650, 150], [560, 240], [640, 230]] } },  // kör traktorn
+        { namn: 'Grävmaskin (verklig)', rita: ritaGravmaskinVerklig, bild: 'bilder/gravmaskin-verklig.png',
+          clawd: { x: 820, y: 292, s: 0.4, ytor: [[820, 200]] } }          // kikar över hyttaket
     ];
+
+    // Bildfilerna laddas i förväg så att bläddring går direkt.
+    PICTURES.forEach(pic => {
+        if (!pic.bild) return;
+        pic.img = new Image();
+        pic.img.src = pic.bild;
+    });
+    let vantarPaBild = -1;
     let currentPicture = 0;
 
     // --- Områden (numrerade ytor) ---
@@ -1078,6 +1235,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let regionLeft = [0];
     let regionRight = [0];
     let regionColor = new Uint32Array(1);   // områdets givna färg
+    let regionBlandad = new Uint8Array(1);  // 1 = ytan har flera färger i kartan
+    let facitPx = new Uint32Array(PAPER_W * PAPER_H);   // färgkartan pixel för pixel
     let regionPainted = new Int32Array(1);  // antal målade pixlar
     let regionDone = new Uint8Array(1);     // 1 = helt ifyllt (eller på väg)
 
@@ -1145,10 +1304,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Varje områdes färg = den färg som dominerar på dess pixlar i
     // colorCanvas (Boyer–Moore-majoritet: en enda genomgång, och de få
-    // anti-aliasade kantpixlarna i blandfärg röstas bort).
+    // anti-aliasade kantpixlarna i blandfärg röstas bort). Har ytan inte en
+    // tydligt dominerande färg och är den stor (t.ex. himmel och mark som
+    // läcker ihop genom ett glapp i en blyertslinje) blir den "blandad" och
+    // färgas pixel för pixel efter kartan, städad av stadaBlandade().
+    const DOMINANS = 0.75;
+    const BLANDAD_MIN = 30000;     // mindre ytor tar alltid sin dominerande färg
     function pickRegionColors() {
         const n = regionSize.length;
-        const px = new Uint32Array(cCtx.getImageData(0, 0, PAPER_W, PAPER_H).data.buffer);
+        facitPx = new Uint32Array(cCtx.getImageData(0, 0, PAPER_W, PAPER_H).data.buffer);
+        const px = facitPx;
+        for (let i = 0, len = px.length; i < len; i++) {
+            // Saknas färg (genomskinligt) eller blev den exakt pappersvit:
+            // ta en ljusgrå så att det ändå syns att ytan är ifylld.
+            const c = px[i];
+            if ((c >>> 24) < 255 || c === PAPER) px[i] = 0xFFEEEEEE;
+        }
         const cand = new Uint32Array(n);
         const votes = new Int32Array(n);
         for (let i = 0, len = labels.length; i < len; i++) {
@@ -1159,12 +1330,125 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (cand[l] === c) votes[l]++;
             else votes[l]--;
         }
-        regionColor = new Uint32Array(n);
+        const antal = new Int32Array(n);
+        for (let i = 0, len = labels.length; i < len; i++) {
+            const l = labels[i];
+            if (l > 0 && px[i] === cand[l]) antal[l]++;
+        }
+        regionColor = cand;
+        regionBlandad = new Uint8Array(n);
+        let nagonBlandad = false;
         for (let l = 1; l < n; l++) {
-            // Saknas färg (genomskinligt) eller blev den exakt pappersvit:
-            // ta en ljusgrå så att det ändå syns att ytan är ifylld.
-            const c = cand[l];
-            regionColor[l] = ((c >>> 24) < 255 || c === PAPER) ? 0xFFEEEEEE : c;
+            if (regionSize[l] >= BLANDAD_MIN && antal[l] < regionSize[l] * DOMINANS) {
+                regionBlandad[l] = 1;
+                nagonBlandad = true;
+            }
+        }
+        if (nagonBlandad) stadaBlandade();
+    }
+
+    // Blandade ytor läcker ofta bara genom små glapp i linjerna. Inom dem
+    // görs linjerna tillfälligt tjockare (GLAPP px åt varje håll) så att
+    // glappen sluts, och ytan delas upp i riktiga delar. Varje del tar sin
+    // dominerande färg ur kartan (om den har en tydlig sådan), och pixlarna
+    // närmast linjerna får färg från närmaste del (bredden-först).
+    const GLAPP = 3;
+    const SKVATT = 0.08;           // andel under vilken en färg räknas som skvätt …
+    const SKVATT_MAX = 8000;       // … om den dessutom täcker färre pixlar än så
+    // Små träd, stammar och ladan i bakgrunden får aldrig räknas som skvätt
+    function hexTillInt(hex) {
+        const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+        return (0xFF000000 | (b << 16) | (g << 8) | r) >>> 0;
+    }
+    const SKYDDAD = new Set([F.trad, F.stam, F.morkrod].map(hexTillInt));
+    function stadaBlandade() {
+        const W = PAPER_W, H = PAPER_H, N = labels.length, px = facitPx;
+        // Tjockare linjer: max-filter, först längs rader och sedan kolumner
+        const rad = new Uint8Array(N), nara = new Uint8Array(N);
+        for (let y = 0; y < H; y++) {
+            let senast = -1e9;
+            for (let x = 0; x < W; x++) {
+                if (labels[y * W + x] === 0) senast = x;
+                if (x - senast <= GLAPP) rad[y * W + x] = 1;
+            }
+            senast = 1e9;
+            for (let x = W - 1; x >= 0; x--) {
+                if (labels[y * W + x] === 0) senast = x;
+                if (senast - x <= GLAPP) rad[y * W + x] = 1;
+            }
+        }
+        for (let x = 0; x < W; x++) {
+            let senast = -1e9;
+            for (let y = 0; y < H; y++) {
+                if (rad[y * W + x]) senast = y;
+                if (y - senast <= GLAPP) nara[y * W + x] = 1;
+            }
+            senast = 1e9;
+            for (let y = H - 1; y >= 0; y--) {
+                if (rad[y * W + x]) senast = y;
+                if (senast - y <= GLAPP) nara[y * W + x] = 1;
+            }
+        }
+        // Dela upp de blandade ytorna i delar (4-grannar, utanför de tjocka linjerna)
+        const del = new Int32Array(N);
+        const klar = new Uint8Array(N);
+        const stack = new Int32Array(N);
+        const ko = new Int32Array(N);
+        let svans = 0;
+        for (let seed = 0; seed < N; seed++) {
+            const l = labels[seed];
+            if (l <= 0 || !regionBlandad[l] || nara[seed] || del[seed]) continue;
+            // Samla delen och rösta fram dess färg
+            const medlem = [];
+            let sp = 0;
+            stack[sp++] = seed;
+            del[seed] = 1;
+            let cand = 0, votes = 0;
+            while (sp) {
+                const i = stack[--sp];
+                medlem.push(i);
+                const c = px[i];
+                if (votes === 0) { cand = c; votes = 1; }
+                else if (c === cand) votes++;
+                else votes--;
+                const x = i % W;
+                if (x > 0) { const q = i - 1; if (!del[q] && !nara[q] && labels[q] === l) { del[q] = 1; stack[sp++] = q; } }
+                if (x < W - 1) { const q = i + 1; if (!del[q] && !nara[q] && labels[q] === l) { del[q] = 1; stack[sp++] = q; } }
+                if (i >= W) { const q = i - W; if (!del[q] && !nara[q] && labels[q] === l) { del[q] = 1; stack[sp++] = q; } }
+                if (i < N - W) { const q = i + W; if (!del[q] && !nara[q] && labels[q] === l) { del[q] = 1; stack[sp++] = q; } }
+            }
+            let antal = 0;
+            for (const i of medlem) if (px[i] === cand) antal++;
+            if (antal >= medlem.length * DOMINANS || medlem.length < BLANDAD_MIN) {
+                for (const i of medlem) { px[i] = cand; klar[i] = 1; }
+            } else {
+                // Fortfarande blandad (t.ex. himmel + mark): färger som bara
+                // skvätt in lite (kartans grova kanter) fylls från grannarna.
+                const rakna = new Map();
+                for (const i of medlem) rakna.set(px[i], (rakna.get(px[i]) || 0) + 1);
+                for (const i of medlem) {
+                    const k = rakna.get(px[i]);
+                    if (SKYDDAD.has(px[i]) || !(k < medlem.length * SKVATT && k < SKVATT_MAX)) klar[i] = 1;
+                }
+            }
+        }
+        // Pixlarna nära linjerna: färg från närmaste klara pixel i samma yta
+        for (let i = 0; i < N; i++) {
+            if (!klar[i]) continue;
+            const x = i % W;
+            if ((x > 0 && !klar[i - 1]) || (x < W - 1 && !klar[i + 1]) ||
+                (i >= W && !klar[i - W]) || (i < N - W && !klar[i + W])) ko[svans++] = i;
+        }
+        let huvud = 0;
+        while (huvud < svans) {
+            const i = ko[huvud++], l = labels[i], x = i % W;
+            const grannar = [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, i - W, i + W];
+            for (const q of grannar) {
+                if (q < 0 || q >= N || klar[q] || labels[q] !== l) continue;
+                px[q] = px[i];
+                klar[q] = 1;
+                ko[svans++] = q;
+            }
         }
     }
 
@@ -1275,6 +1559,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let pictureLoaded = false;
 
     function loadPicture(index) {
+        const pic = PICTURES[index];
+        if (pic.img && !(pic.img.complete && pic.img.naturalWidth)) {
+            // Bildfilen är inte laddad än: byt när den är klar
+            vantarPaBild = index;
+            pic.img.onload = () => { if (vantarPaBild === index) loadPicture(index); };
+            return;
+        }
+        vantarPaBild = -1;
         if (pictureLoaded) {
             finishFades();
             pictureState[currentPicture] = { fill: fillPx.slice(), clawd: !!(clawd && clawd.hittad) };
@@ -1285,12 +1577,12 @@ document.addEventListener('DOMContentLoaded', () => {
         lCtx.setTransform(1, 0, 0, 1, 0, 0);
         lCtx.clearRect(0, 0, PAPER_W, PAPER_H);
         kant = LW;
-        rita(lCtx);
+        rita(lCtx, pic);
         cCtx.setTransform(1, 0, 0, 1, 0, 0);
         cCtx.clearRect(0, 0, PAPER_W, PAPER_H);
         fargLage = true;
         kant = LW;
-        rita(cCtx);
+        rita(cCtx, pic);
         fargLage = false;
         labelRegions();
         pickRegionColors();
@@ -1316,7 +1608,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function changePicture(step) {
-        loadPicture((currentPicture + step + PICTURES.length) % PICTURES.length);
+        const bas = vantarPaBild >= 0 ? vantarPaBild : currentPicture;
+        loadPicture((bas + step + PICTURES.length) % PICTURES.length);
     }
 
     // --- Rendering ---
@@ -1444,7 +1737,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (x >= clawd.box.x0 && x <= clawd.box.x1) clawd.traff++;
                 }
                 if (l <= 0 || regionDone[l] || fillPx[i] !== PAPER) continue;
-                fillPx[i] = regionColor[l];
+                fillPx[i] = regionBlandad[l] ? facitPx[i] : regionColor[l];
                 regionPainted[l]++;
                 touched.add(l);
             }
@@ -1492,12 +1785,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = c.getContext('2d');
         const img = ctx.createImageData(w, h);
         const px = new Uint32Array(img.data.buffer);
-        const col = regionColor[id];
+        const col = regionColor[id], blandad = regionBlandad[id];
         for (let y = 0; y < h; y++) {
             const row = (y0 + y) * W + x0;
             for (let x = 0; x < w; x++) {
                 const i = row + x;
-                if (labels[i] === id && fillPx[i] === PAPER) px[y * w + x] = col;
+                if (labels[i] === id && fillPx[i] === PAPER) px[y * w + x] = blandad ? facitPx[i] : col;
             }
         }
         ctx.putImageData(img, 0, 0);
@@ -1507,12 +1800,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fyller hela ytan i fillPx (direkt, utan toning).
     function commitRegion(id) {
         const W = PAPER_W;
-        const col = regionColor[id];
+        const col = regionColor[id], blandad = regionBlandad[id];
         const x0 = regionLeft[id], x1 = regionRight[id];
         const y0 = regionTop[id], y1 = regionBottom[id];
         for (let y = y0; y <= y1; y++) {
             for (let i = y * W + x0, end = y * W + x1; i <= end; i++) {
-                if (labels[i] === id) fillPx[i] = col;
+                if (labels[i] === id) fillPx[i] = blandad ? facitPx[i] : col;
             }
         }
         regionPainted[id] = regionSize[id];

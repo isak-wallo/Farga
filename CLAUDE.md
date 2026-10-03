@@ -28,8 +28,9 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
   yta fylls i) poppar han upp med en liten studs, vinkar två gånger,
   blinkar och blir kvar. BÖRJA OM gömmer honom igen.
 - Bilder (i ordning): traktor från sidan, traktor snett framifrån (nära en
-  klassisk målarboksförlaga ägaren skickade), grävmaskin, flygplan (A330) och
-  helikopter.
+  klassisk målarboksförlaga ägaren skickade), grävmaskin, flygplan (A330),
+  helikopter, samt två **verkliga** bilder (traktor och grävmaskin) gjorda
+  direkt från förlagor ägaren skickade — se "Verkliga bilder" nedan.
 - Landskapslås, fullscreen, layoutlås/dö-yta, back-fälla och offline-SW är
   kopierade från Kludda — se Kluddas CLAUDE.md för detaljerna.
 - Hostas via GitHub Pages: `https://isak-wallo.github.io/Farga/`.
@@ -90,6 +91,26 @@ pushas, annars fastnar plattan på gammal cache.
   ligger framför (molnet, trädkronan, fönsterkarmen, stänkskärmen) skymmer
   honom och han ser ut att titta fram bakom det. Placera fötterna bakom
   något så att han "kikar" upp.
+
+## Verkliga bilder (konturer från bildfil)
+- `bilder/traktor-verklig.png` och `bilder/gravmaskin-verklig.png` är
+  konturlager (1200×900, genomskinliga, mörkgrå linjer) gjorda med
+  `verktyg/linjer.py` från ägarens förlagor (en ren linjeteckning och en
+  blyertsskiss; skissens skuggning tunnas ut med en tröskel och små prickar
+  tas bort). PICTURES-posten har `bild: '...'`; filen laddas i förväg
+  (`pic.img`) och `loadPicture` väntar på den. Lägg nya filer i `ASSETS` i
+  `sw.js`.
+- Ritfunktionen (`ritaTraktorVerklig`/`ritaGravmaskinVerklig`) ritar bilden
+  på `lineCanvas`, och i färgläget en **grov färgkarta** (`fyllPoly`,
+  `fyllEllips` i bildens koordinater, rutnätsbilden hjälper) som ungefär
+  täcker varje del.
+- Färgning: små eller tydliga ytor tar kartans dominerande färg. Stora ytor
+  utan tydlig färg ("blandade", t.ex. himmel och mark som läcker ihop genom
+  glapp i linjerna) städas i `stadaBlandade`: linjerna görs tillfälligt
+  `GLAPP` px tjockare så glappen sluts, varje del tar sin dominerande färg,
+  färgstrimlor från kartans grova kanter (`SKVATT`, `SKVATT_MAX`) fylls från
+  grannarna, och pixlarna närmast linjerna tar färg från närmaste del.
+  `SKYDDAD` (små träd, stammar, ladan) räknas aldrig som strimlor.
 
 ## Bildstil
 Alla bilder är ritade i en finare målarboksstil: tunna jämna konturer
