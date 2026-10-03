@@ -47,14 +47,15 @@ pushas, annars fastnar plattan på gammal cache.
 - **Bilder** är funktioner som listas i `PICTURES` och ritas **två gånger**:
   först konturerna på `lineCanvas`, sedan med `fargLage = true` på
   `colorCanvas` — då fyller `form(ctx, bygg, farg)` banan med sin färg och
-  `linje()`/`prick()` gör ingenting. Färgerna finns i `F`. `tunnForm()` är
+  `linje()`/`prick()` gör ingenting. Färgerna finns i `F`. Bakgrunden
+  fyller himmel och kullar i färgläget. `tunnForm()` är
   en liten sluten yta med tunn kant som inte raderar bakom sig (fönster).
-  `kant` styr formernas kantbredd (nollställs till `LW` före varje bild). `landskap()`
-  fyller himmel, kulle och väg i färgläget. Hjälpare: `form()` ritar en
+  `kant` styr formernas kantbredd (nollställs till `LW` före varje bild).
+  Hjälpare: `form()` ritar en
   *sluten* form och raderar det som ligger bakom (destination-out), så
   överlappande delar skymmer varandra; `linje()` ritar ett löst streck;
-  `ellips()`, `trad()`, `grastuss()`, `landskap()` (kullar, träd, sol, moln,
-  väg — gemensamt för alla bilder); `stav()` (cylinder/stång) och `mangel()`
+  `ellips()`, `trad()`, `grastuss()`, `sol()`, `moln()`, `hjul()`, `band()`;
+  `stav()` (cylinder/stång) och `mangel()`
   (månghörning) lägger till banor i en `form()`. Ange banor **medurs** —
   blandade riktningar som överlappar i samma form kan ta ut varandra
   (nonzero-fyllning) så att det blir hål. Det som ska bli en egen yta måste
@@ -72,24 +73,24 @@ pushas, annars fastnar plattan på gammal cache.
   nuddar dem. Ritning sker en gång per frame (`requestRender`, `dirty`).
 
 ## Bildstil
-Traktorn och grävmaskinen har tjocka konturer (`LW`). Flygplanet
-(`ritaFlygplan` + `luftBakgrund`) är ritat i en finare målarboksstil som
-ägaren vill gå mot: tunnare jämna konturer (`kant = 4–5`), lite verkligare
-proportioner, fler och mindre ytor (fönster, dörrar, motordelar) är OK nu när
-man målar över i stället för att trycka, sol utan ansikte och en lugn
-bakgrund med tunna linjer.
+Alla bilder är ritade i en finare målarboksstil: tunna jämna konturer
+(`kant = 4–5`), verkliga proportioner (fordonen från sidan, skalade efter
+riktiga mått — se kommentaren över varje `ritaXxx`), fler och mindre ytor
+(fönster, dörrar, motordelar) är OK nu när man målar över i stället för att
+trycka, sol utan ansikte och en lugn bakgrund med tunna linjer
+(`faltBakgrund` för fordonen, `luftBakgrund` för flygplanet). Hjälpare:
+`hjul()` (däck med klackar, fälg, nav), `band()` (böjd bom/sticka längs en
+bezierkurva), `sol()`, `moln()`. Tänk på vad som skymmer vad (t.ex. motorn
+under flygplanets vinge: rita den före vingen så bara fronten syns).
 
 ## Lägga till en ny bild
 1. Skriv `ritaXxx(ctx)` (se `ritaTraktor`/`ritaGravmaskin`; börja med
-   `stilSatt(ctx)` och `landskap(ctx, {...})`). Ge varje `form()` sin
-   givna färg som tredje argument (lägg nya färger i `F`, lugna toner). Stil: realistiska, lugna
-   konturer i ungefär 20–25 färgbara ytor, och ingen yta mindre än ca 4000 px
-   (på 1200×900) — inte fler/mindre, så det blir lätt för små fingrar. Detaljer (bultar, nav, springor, slangar, galler) ritas som
-   `prick()` (svart prick) eller `linje(ctx, bygg, TUNN)` (tunt streck) som
-   stannar en bit från kanten —
-   då syns de utan att bli egna ytor att färga. Slå ihop delar som hör ihop
-   (t.ex. skopa och tänder, rör och ljuddämpare) till en `form()`. Traktorn är ritad snett framifrån i ett eget
-   koordinatsystem (`ctx.translate/scale`) och lägg den i
+   `stilSatt(ctx)`, `kant = 4`, bakgrunden och sedan `kant = 5`). Ge varje `form()` sin
+   givna färg som tredje argument (lägg nya färger i `F`, lugna toner). Se
+   **Bildstil** ovan. Detaljer (bultar, springor, galler, fogar) ritas som
+   `prick()` eller tunna `linje()`-streck med fria ändar så de inte blir
+   egna ytor. Slå ihop delar som hör ihop (t.ex. skopa och tänder, rör och
+   ljuddämpare) till en `form()`. Lägg bilden i
    `PICTURES`. Bläddra-knapparna hittar den automatiskt.
 2. Kontrollera i webbläsaren att alla ytor får rätt färg (inga läckor):
    ytor som inte ska hänga ihop måste vara helt omslutna. Tänk på att en
@@ -112,10 +113,10 @@ bakgrund med tunna linjer.
   kant. Rita förarens huvud, strålkastare m.m. som öppna bågar (lucka) så de
   inte blir egna ytor.
 - Små instängda luftkilar mellan maskinens delar och kullens linje blir egna
-  små ytor; justera kullens höjd bakom maskinen (`o.kulle` i `landskap`)
-  eller flytta delar så kilen hänger ihop med stora himlen/marken.
-- Kontrollera antalet ytor: se till att inte fler än ~30 är större än
-  `MIN_REGION` (köra appen med en debug-hook på `labelRegions`).
+  små ytor. Det är OK (de får rätt färg), men flytta gärna delar så kilen
+  hänger ihop med stora himlen/marken.
+- Testa genom att måla över hela bilden (t.ex. Playwright med musdrag i
+  sicksack) och titta på skärmbilden: varje yta ska ha fått rätt färg.
 
 ## Konventioner
 - Svenska i UI och kommentarer. Ingen byggpipeline, inga dependencies.
