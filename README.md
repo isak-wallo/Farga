@@ -1,7 +1,8 @@
 # Färga
 
-En enkel färgläggningsapp för barn (PWA). Det finns en tecknad bild med
-tydliga streck — tryck på ett område så får det den valda färgen.
+En lugn färgläggningsapp för barn (PWA). Varje bild har sina givna färger
+(röd traktor, gul grävmaskin …) — måla fritt med fingret så kommer färgen
+fram, och när det mesta av en yta är målad fylls resten i av sig själv.
 
 Syskon-app till [Kludda](https://github.com/isak-wallo/Kludda) (fri ritning) och
 [Poppa](https://github.com/isak-wallo/Poppa).
@@ -9,5 +10,6 @@ Syskon-app till [Kludda](https://github.com/isak-wallo/Kludda) (fri ritning) och
 Öppna **https://isak-wallo.github.io/Farga/** i Chrome på plattan och välj
 "Lägg till på hemskärm" för att installera den (fungerar sedan offline).
 
-Bilder: en traktor och en grävmaskin (bläddra med ◀ ▶). Fler läggs till i
+Bilder: en traktor och en grävmaskin (bläddra med ◀ ▶, håll BÖRJA OM två
+gånger för att sudda bilden). Fler läggs till i
 `PICTURES` i `app.js`.

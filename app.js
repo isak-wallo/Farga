@@ -6,24 +6,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Element-referenser — deklarerade först så att funktionerna nedan
     // aldrig kan råka använda dem före deklarationen.
     const startOverlay = document.getElementById('start-overlay');
-    const colorBoxes = document.querySelectorAll('.color-box');
-    const undoBtn = document.getElementById('undo-btn');
-    const clearBtn = document.getElementById('clear-btn');
+    const restartBtn = document.getElementById('restart-btn');
     const app = document.getElementById('app');
 
-    // Bilden är 1200x900 (landskap). Tre lager:
-    //  - lineCanvas: bara de svarta linjerna (genomskinlig bakgrund)
-    //  - fillCanvas: färgerna (vit där inget är ifyllt)
+    // Bilden är 1200x900 (landskap). Lager:
+    //  - lineCanvas: bara konturerna (genomskinlig bakgrund)
+    //  - colorCanvas: facit — bilden ritad med sina givna färger (syns
+    //    aldrig, används bara för att ta reda på varje ytas färg)
+    //  - fillCanvas: det barnet målat fram (vitt där inget är målat)
     //  - viewCanvas: det som syns — fillCanvas med lineCanvas ovanpå
     // Områdena (ytor omringade av linjer) numreras en gång när bilden
-    // laddas (`labels`), så att ett tryck bara behöver slå upp vilket
-    // område det träffade.
+    // laddas (`labels`), och varje område får sin färg från colorCanvas.
     const PAPER_W = 1200;
     const PAPER_H = 900;
     const lineCanvas = document.createElement('canvas');
     lineCanvas.width = PAPER_W;
     lineCanvas.height = PAPER_H;
     const lCtx = lineCanvas.getContext('2d', { willReadFrequently: true });
+    const colorCanvas = document.createElement('canvas');
+    colorCanvas.width = PAPER_W;
+    colorCanvas.height = PAPER_H;
+    const cCtx = colorCanvas.getContext('2d', { willReadFrequently: true });
     const fillCanvas = document.createElement('canvas');
     fillCanvas.width = PAPER_W;
     fillCanvas.height = PAPER_H;
@@ -31,39 +34,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const fillImage = fCtx.createImageData(PAPER_W, PAPER_H);
     const fillPx = new Uint32Array(fillImage.data.buffer);
 
-    const WHITE = 0xFFFFFFFF;
-    // Canvas-pixlar lagras som ABGR (little-endian) i en Uint32Array.
-    function colorToInt(hex) {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return (0xFF000000 | (b << 16) | (g << 8) | r) >>> 0;
-    }
+    // Omålat papper. Canvas-pixlar lagras som ABGR (little-endian) i en
+    // Uint32Array; vitt är samma åt båda hållen.
+    const PAPER = 0xFFFFFFFF;
+    const BAKGRUND = '#dcecf8';   // runt bilden (samma ljusblå som Poppas himmel)
 
-    let currentColor = colorToInt('#ff3b30');
     let clearState = 0;
     let clearTimer = null;
-    const MAX_UNDO = 10;   // Hur många steg bakåt man kan ångra
-    const undoStack = [];
     let viewRect = { left: 0, top: 0 };
-    // --- Håll-in-logik för systemknappar (ÅNGRA / RENSA) ---
-    // Båda kräver att man håller fingret intryckt i HOLD_MS (ca 1 s) för att
-    // aktiveras. RENSA har kvar sin tvåstegsbekräftelse: första hållningen
-    // visar SÄKER?, andra hållningen tömmer duken. En kort tryckning gör inget
-    // — det förhindrar att ett barn råkar rensa/ångra vid missögon.
+    // --- Håll-in-logik för BÖRJA OM ---
+    // Man måste hålla fingret intryckt i HOLD_MS (ca 1 s). Första hållningen
+    // visar SÄKER?, andra hållningen tömmer bilden. En kort tryckning gör
+    // inget — så att ett barn inte råkar sudda allt av misstag.
     const HOLD_MS = 1000;
     // Synka håll-animationens längd i CSS med HOLD_MS (--hold-ms används
     // av .sys-btn.holding i style.css).
     document.documentElement.style.setProperty('--hold-ms', HOLD_MS + 'ms');
     let holdTimer = null;
 
-    function startHold(target) {
+    function startHold() {
         if (holdTimer) clearTimeout(holdTimer);
         holdTimer = setTimeout(() => {
-            const btn = target === 'undo' ? undoBtn : clearBtn;
-            btn.classList.remove('holding');
-            if (target === 'undo') undo();
-            else handleClear();
+            holdTimer = null;
+            restartBtn.classList.remove('holding');
+            handleClear();
         }, HOLD_MS);
     }
 
@@ -81,10 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewCanvas.width !== w || viewCanvas.height !== h) {
             viewCanvas.width = w;
             viewCanvas.height = h;
-            vCtx.imageSmoothingEnabled = false;
         }
         viewRect = viewCanvas.getBoundingClientRect();
-        render();
+        requestRender();
     }
 
     // Layoutlås
@@ -174,10 +167,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Bilder ---
-    // Varje bild är en funktion som ritar svarta streck på lineCanvas.
+    // Varje bild är en funktion som ritas två gånger: först konturerna på
+    // lineCanvas, sedan (med `fargLage` = true) samma former ifyllda med
+    // sina givna färger på colorCanvas. I färgläget fyller form() banan med
+    // sin färg och linje()/prick() gör ingenting.
     // Fler bilder läggs till i PICTURES.
     const LW = 8;     // linjebredd (yttre kant av formerna, se form())
     const TUNN = 4;   // tunn linje för detaljer (springor, fogar, slitbana)
+    const LINJEFARG = '#3a3a44';   // mjukt mörkgrå konturer i stället för kolsvart
+    let fargLage = false;
+
+    // Givna färger — lugna, lite mjukare än rena grundfärger.
+    const F = {
+        himmel: '#cfe6f7',
+        kulle:  '#b8dba4',
+        vag:    '#e8d6ad',
+        sol:    '#f8d66d',
+        moln:   '#e6edf5',
+        trad:   '#8cc47e',
+        rod:    '#e2655a',
+        morkrod:'#c4524a',
+        gul:    '#f3c34f',
+        glas:   '#cfe8f6',
+        dack:   '#5c5f68',
+        falg:   '#f2d06b',
+        stal:   '#a3a9b0',
+        ljusstal: '#ccd1d6',
+        morkstal: '#6f747c'
+    };
 
     function rr(ctx, x, y, w, h, r) {
         ctx.moveTo(x + r, y);
@@ -217,9 +234,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // En sluten form: ritar kanten utanför banan och raderar allt inuti,
     // så att det som ligger bakom (t.ex. markens linje bakom ett hjul)
     // skyms. Flera delbanor i samma form smälter ihop till en kontur.
-    function form(ctx, bygg) {
+    // `farg` är formens givna färg (fylls i på colorCanvas i färgläget).
+    function form(ctx, bygg, farg) {
         ctx.beginPath();
         bygg(ctx);
+        if (fargLage) {
+            ctx.fillStyle = farg;
+            ctx.fill();
+            return;
+        }
         ctx.lineWidth = LW * 2;
         ctx.stroke();
         ctx.globalCompositeOperation = 'destination-out';
@@ -229,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Ett löst streck (stängs inte till ett område).
     function linje(ctx, bygg, bredd) {
+        if (fargLage) return;
         ctx.beginPath();
         bygg(ctx);
         ctx.lineWidth = bredd || LW;
@@ -243,12 +267,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function stilSatt(ctx) {
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        ctx.strokeStyle = '#000';
-        ctx.fillStyle = '#000';
+        ctx.strokeStyle = LINJEFARG;
+        ctx.fillStyle = LINJEFARG;
     }
 
     // En liten svart prick (bult, nav, stödhjul). Ren färg, ingen yta att färga.
     function prick(ctx, x, y, r) {
+        if (fargLage) return;
         ctx.beginPath();
         ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
@@ -262,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cirkel(c, x + 2 * s, y - 92 * s, 38 * s);
             cirkel(c, x + 32 * s, y - 60 * s, 30 * s);
             rr(c, x - 50 * s, y - 62 * s, 100 * s, 36 * s, 18 * s);
-        });
+        }, F.trad);
     }
 
     // Grästuss: tre korta streck
@@ -280,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Bortre kullen och vägkanten (två långa svängar tvärs över bilden)
         // Bortre kullen. Grävmaskinen får en lägre kulle till höger så att
         // luften under bommen blir en enda stor yta.
-        linje(ctx, c => {
+        const kulle = c => {
             if (o.kulle === 'gravmaskin') {
                 c.moveTo(-20, 420);
                 c.bezierCurveTo(60, 380, 150, 380, 215, 440);
@@ -292,11 +317,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 c.bezierCurveTo(620, 470, 760, 360, 930, 360);
                 c.bezierCurveTo(1060, 360, 1140, 395, 1220, 380);
             }
-        });
-        linje(ctx, c => {
+        };
+        const vag = c => {
             c.moveTo(-20, 815);
             c.bezierCurveTo(380, 745, 760, 845, 1220, 755);
-        });
+        };
+        if (fargLage) {
+            // Himmel överallt, sedan kullen och vägen nedanför sina linjer
+            ctx.fillStyle = F.himmel;
+            ctx.fillRect(0, 0, PAPER_W, PAPER_H);
+            [[kulle, F.kulle], [vag, F.vag]].forEach(([bana, farg]) => {
+                ctx.beginPath();
+                bana(ctx);
+                ctx.lineTo(1220, 1000);
+                ctx.lineTo(-20, 1000);
+                ctx.closePath();
+                ctx.fillStyle = farg;
+                ctx.fill();
+            });
+        }
+        linje(ctx, kulle);
+        linje(ctx, vag);
 
         // Fåror på kullen och hjulspår på vägen (lösa streck, ingen egen yta)
         // De ska ha fria ändar (inte nå bildkanten eller maskinen) så att de
@@ -319,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Sol
         const sx = o.sol[0], sy = o.sol[1];
-        form(ctx, c => cirkel(c, sx, sy, 50));
+        form(ctx, c => cirkel(c, sx, sy, 50), F.sol);
         for (let k = 0; k < 10; k++) {
             const v = k * Math.PI / 5 + 0.15;
             linje(ctx, c => {
@@ -327,8 +368,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 c.lineTo(sx + Math.cos(v) * 98, sy + Math.sin(v) * 98);
             });
         }
-        ctx.beginPath(); ctx.arc(sx - 17, sy - 11, 5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(sx + 17, sy - 11, 5, 0, Math.PI * 2); ctx.fill();
+        prick(ctx, sx - 17, sy - 11, 5);
+        prick(ctx, sx + 17, sy - 11, 5);
         linje(ctx, c => c.arc(sx, sy, 25, 0.25 * Math.PI, 0.75 * Math.PI));
 
         // Moln
@@ -339,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cirkel(c, x, y - 28 * s, 42 * s);
                 cirkel(c, x + 55 * s, y - 4 * s, 34 * s);
                 rr(c, x - 87 * s, y - 2 * s, 176 * s, 36 * s, 18 * s);
-            });
+            }, F.moln);
         });
 
         // Gräs i förgrunden
@@ -403,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
             stav(c, 352, 282, 380, 256, 22);
             cirkel(c, 352, 282, 11);
             rr(c, 331, 340, 52, 108, 10);
-        });
+        }, F.stal);
         for (let k = 0; k < 4; k++) {       // ränder på ljuddämparen (inga korsningar)
             linje(ctx, c => { c.moveTo(344, 366 + k * 18); c.lineTo(370, 360 + k * 18); }, TUNN);
         }
@@ -412,14 +453,14 @@ document.addEventListener('DOMContentLoaded', () => {
         form(ctx, c => rmangel(c, [
             [418, 262], [600, 258], [752, 268], [748, 425], [650, 435],
             [648, 582], [570, 592], [535, 586], [535, 430], [408, 405]
-        ], 12));
+        ], 12), F.rod);
         form(ctx, c => rmangel(c, [
             [418, 240], [470, 222], [600, 204], [745, 238], [752, 262],
             [745, 270], [600, 262], [420, 262]
-        ], 12));
+        ], 12), F.morkrod);
         linje(ctx, c => { c.moveTo(436, 252); c.lineTo(734, 259); }, TUNN);    // takkant
-        form(ctx, c => rmangel(c, [[434, 278], [576, 272], [552, 396], [422, 392]], 14));
-        form(ctx, c => rmangel(c, [[606, 278], [736, 290], [733, 411], [598, 417]], 14));
+        form(ctx, c => rmangel(c, [[434, 278], [576, 272], [552, 396], [422, 392]], 14), F.glas);
+        form(ctx, c => rmangel(c, [[606, 278], [736, 290], [733, 411], [598, 417]], 14), F.glas);
         linje(ctx, c => { c.moveTo(690, 286); c.lineTo(691, 338); }, TUNN);    // dörrstolpe
         linje(ctx, c => { c.moveTo(498, 274); c.lineTo(442, 338); }, TUNN);    // torkare
         linje(ctx, c => { c.moveTo(456, 380); c.lineTo(488, 306); }, TUNN);    // reflexer
@@ -433,8 +474,8 @@ document.addEventListener('DOMContentLoaded', () => {
         linje(ctx, c => { c.moveTo(588, 452); c.lineTo(588, 474); }, TUNN);    // dörrhandtag
 
         // Bakhjul (stort) med slitbana och bultar
-        form(ctx, c => ellips(c, 765, 640, 112, 162));
-        form(ctx, c => ellips(c, 800, 630, 56, 104));
+        form(ctx, c => ellips(c, 765, 640, 112, 162), F.dack);
+        form(ctx, c => ellips(c, 800, 630, 56, 104), F.falg);
         slitbana(ctx, 765, 640, 112, 162, 100, 260, 15, 0.7, 0.94);
         linje(ctx, c => c.ellipse(765, 640, 112 * 0.6, 162 * 0.6, 0, 100 * Math.PI / 180, 260 * Math.PI / 180), TUNN);
         linje(ctx, c => c.ellipse(806, 628, 34, 62, 0, 0.35 * Math.PI, 1.65 * Math.PI), TUNN);
@@ -452,7 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
             c.bezierCurveTo(800, 470, 742, 482, 702, 530);
             c.bezierCurveTo(676, 556, 660, 576, 640, 582);
             c.closePath();
-        });
+        }, F.rod);
         linje(ctx, c => {
             c.moveTo(672, 522);
             c.bezierCurveTo(690, 482, 735, 455, 790, 454);
@@ -460,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, TUNN);
 
         // Främre hjul längst bort (vänster): däck och fälg i en yta
-        form(ctx, c => ellips(c, 232, 705, 68, 98));
+        form(ctx, c => ellips(c, 232, 705, 68, 98), F.dack);
         linje(ctx, c => c.ellipse(245, 708, 36, 60, 0, 0.3 * Math.PI, 1.7 * Math.PI), TUNN);
         slitbana(ctx, 232, 705, 68, 98, 120, 240, 15, 0.74, 0.93);
         prick(ctx, 247, 710, 8);
@@ -475,7 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
             c.lineTo(262, 625);
             c.bezierCurveTo(250, 580, 245, 540, 248, 500);
             c.closePath();
-        });
+        }, F.rod);
         linje(ctx, c => {                   // kant mellan huvens topp och sida
             c.moveTo(270, 498);
             c.bezierCurveTo(300, 466, 380, 442, 466, 438);
@@ -491,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
             linje(ctx, c => { c.moveTo(476 + k * 16, 446 + k * 3); c.lineTo(480 + k * 16, 480 + k * 3); }, TUNN);
         }
         // Grill med springor
-        form(ctx, c => rr(c, 257, 490, 78, 128, 24));
+        form(ctx, c => rr(c, 257, 490, 78, 128, 24), F.stal);
         for (let k = 0; k < 4; k++) {
             linje(ctx, c => { c.moveTo(272 + k * 15, 514); c.lineTo(272 + k * 15, 596); }, TUNN);
         }
@@ -500,13 +541,13 @@ document.addEventListener('DOMContentLoaded', () => {
         linje(ctx, c => c.arc(383, 563, 16, 0.3 * Math.PI, 1.8 * Math.PI), TUNN);
         prick(ctx, 383, 563, 5);
         // Främre tyngd
-        form(ctx, c => rmangel(c, [[226, 640], [370, 632], [374, 694], [232, 670]], 6));
+        form(ctx, c => rmangel(c, [[226, 640], [370, 632], [374, 694], [232, 670]], 6), F.morkstal);
         prick(ctx, 246, 654, 5);
         prick(ctx, 356, 650, 5);
 
         // Främre hjul närmast
-        form(ctx, c => ellips(c, 490, 725, 75, 106));
-        form(ctx, c => ellips(c, 500, 730, 40, 66));
+        form(ctx, c => ellips(c, 490, 725, 75, 106), F.dack);
+        form(ctx, c => ellips(c, 500, 730, 40, 66), F.falg);
         slitbana(ctx, 490, 725, 75, 106, 120, 240, 15, 0.74, 0.93);
         prick(ctx, 502, 735, 9);
 
@@ -538,12 +579,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Underrede: svängkrans/plattform, larvband med drev och stödhjul
-        form(ctx, c => rr(c, 255, 518, 470, 86, 8));
+        form(ctx, c => rr(c, 255, 518, 470, 86, 8), F.morkstal);
         prick(ctx, 280, 572, 6);
         prick(ctx, 700, 572, 6);
-        form(ctx, c => rr(c, 235, 592, 530, 124, 62));
-        form(ctx, c => cirkel(c, 297, 654, 54));
-        form(ctx, c => cirkel(c, 703, 654, 54));
+        form(ctx, c => rr(c, 235, 592, 530, 124, 62), F.dack);
+        form(ctx, c => cirkel(c, 297, 654, 54), F.stal);
+        form(ctx, c => cirkel(c, 703, 654, 54), F.stal);
         [297, 703].forEach(x => {           // drevens kuggring och bultar
             linje(ctx, c => c.arc(x, 654, 38, 0.25 * Math.PI, 1.75 * Math.PI), TUNN);
             for (let k = 0; k < 6; k++) {
@@ -568,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
             c.lineTo(392, 394);
             c.lineTo(396, 560);
             c.closePath();
-        });
+        }, F.gul);
         linje(ctx, c => {
             c.moveTo(230, 470);
             c.bezierCurveTo(230, 432, 258, 410, 300, 406);
@@ -589,7 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
             stav(c, 448, 428, 448, 352, 22);
             stav(c, 448, 352, 474, 328, 22);
             cirkel(c, 448, 352, 11);
-        });
+        }, F.gul);
         for (let k = 0; k < 3; k++) {       // luftspringor
             linje(ctx, c => { c.moveTo(424, 458 + k * 28); c.lineTo(526, 458 + k * 28); }, TUNN);
         }
@@ -609,10 +650,10 @@ document.addEventListener('DOMContentLoaded', () => {
             c.lineTo(722, 562);
             c.closePath();
             rr(c, 540, 310, 150, 28, 10);
-        });
+        }, F.gul);
         linje(ctx, c => { c.moveTo(558, 324); c.lineTo(672, 324); }, TUNN);
         prick(ctx, 609, 292, 10);               // varningslampa
-        form(ctx, c => rmangel(c, [[570, 354], [652, 354], [698, 410], [698, 482], [570, 482]], 12));
+        form(ctx, c => rmangel(c, [[570, 354], [652, 354], [698, 410], [698, 482], [570, 482]], 12), F.glas);
         linje(ctx, c => { c.moveTo(578, 468); c.lineTo(588, 424); }, TUNN);    // reflexer
         linje(ctx, c => { c.moveTo(640, 366); c.lineTo(612, 400); }, TUNN);    // torkare
         linje(ctx, c => c.arc(628, 436, 24, 0.65 * Math.PI, 2.35 * Math.PI), TUNN + 1);   // förarens huvud (öppen nedtill)
@@ -631,7 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
             c.bezierCurveTo(960, 235, 975, 258, 962, 278);
             c.bezierCurveTo(880, 330, 800, 420, 780, 556);
             c.closePath();
-        });
+        }, F.gul);
         linje(ctx, c => {                       // hydraulslang längs bomen
             c.moveTo(706, 502);
             c.bezierCurveTo(706, 424, 786, 330, 896, 268);
@@ -645,7 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }, TUNN);
         });
         // Cylinderns ände ligger mitt i bommen (annars skär den av en sliver-yta)
-        form(ctx, c => { stav(c, 722, 538, 773, 430, 30); stav(c, 773, 430, 815, 342, 15); });
+        form(ctx, c => { stav(c, 722, 538, 773, 430, 30); stav(c, 773, 430, 815, 342, 15); }, F.ljusstal);
         linje(ctx, c => { c.moveTo(762, 442); c.lineTo(776, 449); }, TUNN);    // kolvring
 
         // Stickan (avsmalnande) med cylinder uppe på bommen
@@ -653,11 +694,11 @@ document.addEventListener('DOMContentLoaded', () => {
             mangel(c, [[977, 245], [1103, 508], [1057, 532], [913, 279]]);
             cirkel(c, 945, 262, 36);
             cirkel(c, 1080, 520, 28);
-        });
+        }, F.gul);
         linje(ctx, c => { c.moveTo(958, 296); c.lineTo(1050, 470); }, TUNN);   // förstärkning
         linje(ctx, c => { c.moveTo(970, 366); c.lineTo(1010, 346); }, TUNN);
         linje(ctx, c => { c.moveTo(1018, 442); c.lineTo(1046, 428); }, TUNN);
-        form(ctx, c => { stav(c, 800, 275, 885, 232, 30); stav(c, 885, 232, 962, 212, 15); });
+        form(ctx, c => { stav(c, 800, 275, 885, 232, 30); stav(c, 885, 232, 962, 212, 15); }, F.ljusstal);
         linje(ctx, c => { c.moveTo(871, 232); c.lineTo(876, 241); }, TUNN);    // kolvring
 
         // Skopa med tänder (en enda yta)
@@ -672,7 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mangel(c, [[1040, 724], [1074, 720], [1054, 752]]);
             mangel(c, [[1082, 718], [1116, 713], [1098, 746]]);
             mangel(c, [[1124, 712], [1152, 708], [1138, 738]]);
-        });
+        }, F.morkstal);
         linje(ctx, c => {                       // skopans förstärkningsrand
             c.moveTo(1090, 528);
             c.bezierCurveTo(1150, 540, 1172, 600, 1162, 660);
@@ -698,44 +739,51 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPicture = 0;
 
     // --- Områden (numrerade ytor) ---
-    // labels[i]: 0 = linje (går inte att färga), >0 = områdets nummer.
+    // labels[i]: 0 = linje (går inte att måla), >0 = områdets nummer.
     // Pixlar med alpha >= LINE_ALPHA räknas som linje; kantpixlarna under
-    // den gränsen färgas så att färgen går hela vägen in under linjens
-    // anti-aliasade kant (ingen vit hinna).
+    // den gränsen hör till ytan så att färgen går hela vägen in under
+    // linjens anti-aliasade kant (ingen vit hinna).
     const LINE_ALPHA = 200;
-    // Områden mindre än så här (pixlar) är bara kantrester och ignoreras
-    // när man träffar en linje och vi letar närmaste riktiga yta.
+    // Områden mindre än så här (pixlar) är bara små celler mellan
+    // detaljstreck. De fylls i direkt när penseln nuddar dem.
     const MIN_REGION = 150;
     let labels = new Int32Array(PAPER_W * PAPER_H);
     let regionSize = [0];
-    let regionTop = [0];      // översta/nedersta raden för varje område,
-    let regionBottom = [0];   // så att ifyllnad bara går igenom dess rader
-    let regionInt = new Uint32Array(1);   // nuvarande färg per område
+    let regionTop = [0];      // omslutande rektangel för varje område, så att
+    let regionBottom = [0];   // ifyllnad bara behöver gå igenom den
+    let regionLeft = [0];
+    let regionRight = [0];
+    let regionColor = new Uint32Array(1);   // områdets givna färg
+    let regionPainted = new Int32Array(1);  // antal målade pixlar
+    let regionDone = new Uint8Array(1);     // 1 = helt ifyllt (eller på väg)
 
     function labelRegions() {
         const W = PAPER_W, H = PAPER_H;
         const alpha = lCtx.getImageData(0, 0, W, H).data;
         labels.fill(0);
         for (let i = 0, n = W * H; i < n; i++) {
-            if (alpha[i * 4 + 3] < LINE_ALPHA) labels[i] = -1;   // ofärgad, ej besökt
+            if (alpha[i * 4 + 3] < LINE_ALPHA) labels[i] = -1;   // yta, ej besökt
         }
         regionSize = [0];
         regionTop = [0];
         regionBottom = [0];
+        regionLeft = [0];
+        regionRight = [0];
         let id = 0;
         for (let seed = 0, n = W * H; seed < n; seed++) {
             if (labels[seed] !== -1) continue;
             id++;
             floodLabel(seed, id);
         }
-        regionInt = new Uint32Array(id + 1).fill(WHITE);
+        regionPainted = new Int32Array(id + 1);
+        regionDone = new Uint8Array(id + 1);
     }
 
     // Scanline-fyllning som numrerar ett sammanhängande område (4-grannar).
     function floodLabel(seed, id) {
         const W = PAPER_W, H = PAPER_H;
         const stack = [seed];
-        let count = 0, top = H, bottom = 0;
+        let count = 0, top = H, bottom = 0, left = W, right = 0;
         while (stack.length) {
             const p = stack.pop();
             if (labels[p] !== -1) continue;
@@ -748,6 +796,8 @@ document.addEventListener('DOMContentLoaded', () => {
             count += r - l + 1;
             if (y < top) top = y;
             if (y > bottom) bottom = y;
+            if (l - rowStart < left) left = l - rowStart;
+            if (r - rowStart > right) right = r - rowStart;
             for (let dy = -1; dy <= 1; dy += 2) {
                 const yy = y + dy;
                 if (yy < 0 || yy >= H) continue;
@@ -765,61 +815,80 @@ document.addEventListener('DOMContentLoaded', () => {
         regionSize[id] = count;
         regionTop[id] = top;
         regionBottom[id] = bottom;
+        regionLeft[id] = left;
+        regionRight[id] = right;
     }
 
-    // Varje bild minns sina färger och sin ångra-historik medan appen är
-    // öppen, så man kan bläddra fram och tillbaka utan att förlora något.
-    // Bara färgtabellen sparas (ytorna numreras likadant varje gång).
+    // Varje områdes färg = den färg som dominerar på dess pixlar i
+    // colorCanvas (Boyer–Moore-majoritet: en enda genomgång, och de få
+    // anti-aliasade kantpixlarna i blandfärg röstas bort).
+    function pickRegionColors() {
+        const n = regionSize.length;
+        const px = new Uint32Array(cCtx.getImageData(0, 0, PAPER_W, PAPER_H).data.buffer);
+        const cand = new Uint32Array(n);
+        const votes = new Int32Array(n);
+        for (let i = 0, len = labels.length; i < len; i++) {
+            const l = labels[i];
+            if (l <= 0) continue;
+            const c = px[i];
+            if (votes[l] === 0) { cand[l] = c; votes[l] = 1; }
+            else if (cand[l] === c) votes[l]++;
+            else votes[l]--;
+        }
+        regionColor = new Uint32Array(n);
+        for (let l = 1; l < n; l++) {
+            // Saknas färg (genomskinligt) eller blev den exakt pappersvit:
+            // ta en ljusgrå så att det ändå syns att ytan är ifylld.
+            const c = cand[l];
+            regionColor[l] = ((c >>> 24) < 255 || c === PAPER) ? 0xFFEEEEEE : c;
+        }
+    }
+
+    // Varje bild minns det man målat medan appen är öppen, så man kan
+    // bläddra fram och tillbaka utan att förlora något.
     const pictureState = [];
     let pictureLoaded = false;
 
     function loadPicture(index) {
         if (pictureLoaded) {
-            pictureState[currentPicture] = { regionInt: regionInt, undo: undoStack.slice() };
+            finishFades();
+            pictureState[currentPicture] = fillPx.slice();
         }
         pictureLoaded = true;
         currentPicture = index;
+        const rita = PICTURES[index].rita;
         lCtx.setTransform(1, 0, 0, 1, 0, 0);
         lCtx.clearRect(0, 0, PAPER_W, PAPER_H);
-        PICTURES[index].rita(lCtx);
+        rita(lCtx);
+        cCtx.setTransform(1, 0, 0, 1, 0, 0);
+        cCtx.clearRect(0, 0, PAPER_W, PAPER_H);
+        fargLage = true;
+        rita(cCtx);
+        fargLage = false;
         labelRegions();
-        undoStack.length = 0;
+        pickRegionColors();
+        fades.length = 0;
         const saved = pictureState[index];
-        if (saved && saved.regionInt.length === regionInt.length) {
-            regionInt = saved.regionInt;
-            saved.undo.forEach(u => undoStack.push(u));
-            paintAll();
+        if (saved) {
+            fillPx.set(saved);
+            for (let i = 0, n = labels.length; i < n; i++) {
+                const l = labels[i];
+                if (l > 0 && fillPx[i] !== PAPER) regionPainted[l]++;
+            }
+            for (let l = 1; l < regionSize.length; l++) {
+                if (regionPainted[l] === regionSize[l]) regionDone[l] = 1;
+            }
         } else {
-            fillPx.fill(WHITE);
-            fCtx.putImageData(fillImage, 0, 0);
+            fillPx.fill(PAPER);
         }
-        updateUndoState();
+        fCtx.putImageData(fillImage, 0, 0);
+        dirty = null;
         resetClearButton();
-        render();
+        requestRender();
     }
 
     function changePicture(step) {
         loadPicture((currentPicture + step + PICTURES.length) % PICTURES.length);
-    }
-
-    // Målar om ett enda område (snabbt: bara dess rader).
-    function paintRegion(id) {
-        const W = PAPER_W;
-        const c = regionInt[id];
-        const y0 = regionTop[id], y1 = regionBottom[id];
-        for (let i = y0 * W, end = (y1 + 1) * W; i < end; i++) {
-            if (labels[i] === id) fillPx[i] = c;
-        }
-        fCtx.putImageData(fillImage, 0, 0, 0, y0, W, y1 - y0 + 1);
-    }
-
-    // Målar om hela bilden (efter ångra / rensa).
-    function paintAll() {
-        for (let i = 0, n = labels.length; i < n; i++) {
-            const l = labels[i];
-            fillPx[i] = l > 0 ? regionInt[l] : WHITE;
-        }
-        fCtx.putImageData(fillImage, 0, 0);
     }
 
     // --- Rendering ---
@@ -840,17 +909,68 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Ritning sker högst en gång per frame (requestRender). Målade pixlar
+    // skrivs till fillPx direkt; `dirty` samlar vilken rektangel som
+    // behöver föras över till fillCanvas innan nästa ritning.
+    let dirty = null;
+    let renderPending = false;
+
+    function markDirty(x0, y0, x1, y1) {
+        if (!dirty) dirty = { x0, y0, x1, y1 };
+        else {
+            if (x0 < dirty.x0) dirty.x0 = x0;
+            if (y0 < dirty.y0) dirty.y0 = y0;
+            if (x1 > dirty.x1) dirty.x1 = x1;
+            if (y1 > dirty.y1) dirty.y1 = y1;
+        }
+    }
+
+    function requestRender() {
+        if (renderPending) return;
+        renderPending = true;
+        requestAnimationFrame(() => {
+            renderPending = false;
+            render();
+        });
+    }
+
     function render() {
+        if (dirty) {
+            fCtx.putImageData(fillImage, 0, 0, dirty.x0, dirty.y0,
+                dirty.x1 - dirty.x0 + 1, dirty.y1 - dirty.y0 + 1);
+            dirty = null;
+        }
         const W = viewCanvas.width, H = viewCanvas.height;
         if (W === 0 || H === 0) return;
         updateTransform();
         vCtx.setTransform(1, 0, 0, 1, 0, 0);
-        vCtx.fillStyle = '#ffffff';
+        vCtx.fillStyle = BAKGRUND;
         vCtx.fillRect(0, 0, W, H);
         vCtx.setTransform(xf.a, xf.b, xf.c, xf.d, xf.e, xf.f);
         vCtx.drawImage(fillCanvas, 0, 0);
+        // Ytor som håller på att fyllas i tonas fram ovanpå
+        const now = performance.now();
+        for (let k = fades.length - 1; k >= 0; k--) {
+            const f = fades[k];
+            const t = (now - f.start) / FADE_MS;
+            if (t >= 1) {
+                commitRegion(f.id);
+                fades.splice(k, 1);
+                continue;
+            }
+            vCtx.globalAlpha = t * t * (3 - 2 * t);   // mjuk in/ut
+            vCtx.drawImage(f.canvas, f.x, f.y);
+        }
+        vCtx.globalAlpha = 1;
+        if (dirty) {    // commitRegion ovan kan ha målat klart en yta
+            fCtx.putImageData(fillImage, 0, 0, dirty.x0, dirty.y0,
+                dirty.x1 - dirty.x0 + 1, dirty.y1 - dirty.y0 + 1);
+            dirty = null;
+            vCtx.drawImage(fillCanvas, 0, 0);
+        }
         vCtx.drawImage(lineCanvas, 0, 0);
         vCtx.setTransform(1, 0, 0, 1, 0, 0);
+        if (fades.length) requestRender();
     }
 
     // Skärmkoordinat -> bildkoordinat (inversen av xf)
@@ -864,99 +984,159 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // --- Tryck = färglägg området ---
-    // Hittar området vid (px, py). Träffas en linje (barn träffar sällan
-    // exakt) letar vi efter närmaste riktiga yta inom några pixlar.
-    const SNAP_RADIUS = 16;
-    function regionAt(px, py) {
-        const W = PAPER_W, H = PAPER_H;
-        const x0 = Math.round(px), y0 = Math.round(py);
-        if (x0 < 0 || y0 < 0 || x0 >= W || y0 >= H) return 0;
-        const direct = labels[y0 * W + x0];
-        if (direct > 0 && regionSize[direct] >= MIN_REGION) return direct;
-        let best = 0, bestD = SNAP_RADIUS * SNAP_RADIUS + 1;
-        for (let y = Math.max(0, y0 - SNAP_RADIUS); y <= Math.min(H - 1, y0 + SNAP_RADIUS); y++) {
-            for (let x = Math.max(0, x0 - SNAP_RADIUS); x <= Math.min(W - 1, x0 + SNAP_RADIUS); x++) {
-                const l = labels[y * W + x];
-                if (l <= 0 || regionSize[l] < MIN_REGION) continue;
-                const d = (x - x0) * (x - x0) + (y - y0) * (y - y0);
-                if (d < bestD) { bestD = d; best = l; }
+    // --- Måla ---
+    // Fingret är en pensel som målar fram ytornas givna färger (den kan inte
+    // välja färg). När FYLL_ANDEL av en yta är målad fylls resten i av sig
+    // själv och tonas mjukt fram (FADE_MS).
+    const PENSEL = 34;         // penselns radie i bildpixlar
+    const FYLL_ANDEL = 0.8;
+    const FADE_MS = 700;
+    const fades = [];          // { id, canvas, x, y, start }
+    const touched = new Set(); // ytor som penseln nuddat i den här rörelsen
+
+    // Målar en rund klick med penseln kring (cx, cy) i bildkoordinater.
+    function stamp(cx, cy) {
+        const W = PAPER_W, H = PAPER_H, r = PENSEL;
+        const y0 = Math.max(0, Math.ceil(cy - r)), y1 = Math.min(H - 1, Math.floor(cy + r));
+        if (y0 > y1) return;
+        let minX = W, maxX = -1;
+        for (let y = y0; y <= y1; y++) {
+            const dy = y - cy;
+            const half = Math.sqrt(r * r - dy * dy);
+            const xa = Math.max(0, Math.ceil(cx - half)), xb = Math.min(W - 1, Math.floor(cx + half));
+            if (xa > xb) continue;
+            if (xa < minX) minX = xa;
+            if (xb > maxX) maxX = xb;
+            for (let i = y * W + xa, end = y * W + xb; i <= end; i++) {
+                const l = labels[i];
+                if (l <= 0 || regionDone[l] || fillPx[i] !== PAPER) continue;
+                fillPx[i] = regionColor[l];
+                regionPainted[l]++;
+                touched.add(l);
             }
         }
-        return best;
+        if (maxX >= minX) markDirty(minX, y0, maxX, y1);
     }
 
-    function fillAt(clientX, clientY) {
-        const p = getPaperCoords(clientX, clientY);
-        const id = regionAt(p.x, p.y);
-        if (id === 0 || regionInt[id] === currentColor) return;
-        pushUndo();
-        regionInt[id] = currentColor;
-        paintRegion(id);
-        render();
-        resetClearButton();
+    // Penseldrag från a till b: klickar tätt längs sträckan.
+    function stroke(ax, ay, bx, by) {
+        const d = Math.hypot(bx - ax, by - ay);
+        const steg = Math.max(1, Math.ceil(d / (PENSEL * 0.35)));
+        for (let k = 1; k <= steg; k++) {
+            stamp(ax + (bx - ax) * k / steg, ay + (by - ay) * k / steg);
+        }
     }
 
-    // Ett tryck räknas bara om fingret knappt rör sig och lyfts snabbt —
-    // en vilande hand eller ett glidande finger färgar ingenting.
-    const TAP_MAX_MOVE = 24;   // skärm-px
-    const TAP_MAX_MS = 700;
-    const taps = new Map();
+    // Kollar om någon av de nyss målade ytorna nått gränsen.
+    function checkTouched() {
+        touched.forEach(l => {
+            if (regionDone[l]) return;
+            if (regionSize[l] < MIN_REGION) {
+                regionDone[l] = 1;
+                commitRegion(l);
+            } else if (regionPainted[l] >= regionSize[l] * FYLL_ANDEL) {
+                startFade(l);
+            }
+        });
+        touched.clear();
+        if (clearState) resetClearButton();
+        requestRender();
+    }
+
+    // Lägger det som är kvar av ytan på en egen liten canvas som tonas fram
+    // ovanpå; när toningen är klar skrivs den in i fillPx (commitRegion).
+    function startFade(id) {
+        regionDone[id] = 1;
+        const W = PAPER_W;
+        const x0 = regionLeft[id], y0 = regionTop[id];
+        const w = regionRight[id] - x0 + 1, h = regionBottom[id] - y0 + 1;
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+        const img = ctx.createImageData(w, h);
+        const px = new Uint32Array(img.data.buffer);
+        const col = regionColor[id];
+        for (let y = 0; y < h; y++) {
+            const row = (y0 + y) * W + x0;
+            for (let x = 0; x < w; x++) {
+                const i = row + x;
+                if (labels[i] === id && fillPx[i] === PAPER) px[y * w + x] = col;
+            }
+        }
+        ctx.putImageData(img, 0, 0);
+        fades.push({ id, canvas: c, x: x0, y: y0, start: performance.now() });
+    }
+
+    // Fyller hela ytan i fillPx (direkt, utan toning).
+    function commitRegion(id) {
+        const W = PAPER_W;
+        const col = regionColor[id];
+        const x0 = regionLeft[id], x1 = regionRight[id];
+        const y0 = regionTop[id], y1 = regionBottom[id];
+        for (let y = y0; y <= y1; y++) {
+            for (let i = y * W + x0, end = y * W + x1; i <= end; i++) {
+                if (labels[i] === id) fillPx[i] = col;
+            }
+        }
+        regionPainted[id] = regionSize[id];
+        markDirty(x0, y0, x1, y1);
+    }
+
+    // Gör klart alla pågående toningar direkt (inför bildbyte).
+    function finishFades() {
+        fades.forEach(f => commitRegion(f.id));
+        fades.length = 0;
+    }
+
+    // Alla fingrar målar. Varje finger minns sin senaste punkt.
+    const fingers = new Map();
 
     function onTouchStart(e) {
         if (e.cancelable) e.preventDefault();
         for (let i = 0; i < e.changedTouches.length; i++) {
             const t = e.changedTouches[i];
-            taps.set(t.identifier, { x: t.clientX, y: t.clientY, t: Date.now(), moved: false });
+            const p = getPaperCoords(t.clientX, t.clientY);
+            fingers.set(t.identifier, p);
+            stamp(p.x, p.y);
         }
+        checkTouched();
     }
 
     function onTouchMove(e) {
         if (e.cancelable) e.preventDefault();
         for (let i = 0; i < e.changedTouches.length; i++) {
             const t = e.changedTouches[i];
-            const tap = taps.get(t.identifier);
-            if (!tap) continue;
-            const dx = t.clientX - tap.x, dy = t.clientY - tap.y;
-            if (dx * dx + dy * dy > TAP_MAX_MOVE * TAP_MAX_MOVE) tap.moved = true;
+            const last = fingers.get(t.identifier);
+            if (!last) continue;
+            const p = getPaperCoords(t.clientX, t.clientY);
+            stroke(last.x, last.y, p.x, p.y);
+            fingers.set(t.identifier, p);
         }
+        checkTouched();
     }
 
     function onTouchEnd(e) {
-        for (let i = 0; i < e.changedTouches.length; i++) {
-            const t = e.changedTouches[i];
-            const tap = taps.get(t.identifier);
-            if (!tap) continue;
-            taps.delete(t.identifier);
-            if (!tap.moved && Date.now() - tap.t <= TAP_MAX_MS) fillAt(tap.x, tap.y);
-        }
+        for (let i = 0; i < e.changedTouches.length; i++) fingers.delete(e.changedTouches[i].identifier);
     }
 
-    function onTouchCancel(e) {
-        for (let i = 0; i < e.changedTouches.length; i++) taps.delete(e.changedTouches[i].identifier);
-    }
-
-    function selectColor(hex, element) {
-        currentColor = colorToInt(hex);
-        colorBoxes.forEach(box => box.classList.remove('selected'));
-        element.classList.add('selected');
-        resetClearButton();
-    }
-
-    // RENSA — tvåstegs med hållning: första hållningen (1 s) visar "SÄKER?"
-    // (röd, 5 s timeout / nollställs vid nytt tryck), andra hållningen
-    // (1 s) tömmer bilden på färg.
+    // BÖRJA OM — tvåstegs med hållning: första hållningen (1 s) visar
+    // "SÄKER?" (5 s timeout / nollställs om man målar), andra hållningen
+    // (1 s) tömmer bilden.
     function handleClear() {
         if (clearState === 0) {
             clearState = 1;
-            clearBtn.textContent = 'SÄKER?';
-            clearBtn.classList.add('confirm');
+            restartBtn.textContent = 'SÄKER?';
+            restartBtn.classList.add('confirm');
             clearTimer = setTimeout(resetClearButton, 5000);
         } else {
-            pushUndo();
-            regionInt.fill(WHITE);
-            paintAll();
-            render();
+            fades.length = 0;
+            fillPx.fill(PAPER);
+            regionPainted.fill(0);
+            regionDone.fill(0);
+            fCtx.putImageData(fillImage, 0, 0);
+            dirty = null;
+            requestRender();
             resetClearButton();
         }
     }
@@ -967,30 +1147,10 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(clearTimer);
             clearTimer = null;
         }
-        if (clearBtn) {
-            clearBtn.textContent = 'RENSA';
-            clearBtn.classList.remove('confirm');
+        if (restartBtn) {
+            restartBtn.textContent = 'BÖRJA OM';
+            restartBtn.classList.remove('confirm');
         }
-    }
-
-    // Ångra-historiken sparar bara områdenas färger (liten lista), inte pixlar.
-    function pushUndo() {
-        undoStack.push(regionInt.slice());
-        if (undoStack.length > MAX_UNDO) undoStack.shift();
-        updateUndoState();
-    }
-
-    function undo() {
-        if (undoStack.length === 0) return;
-        regionInt = undoStack.pop();
-        paintAll();
-        render();
-        resetClearButton();
-        updateUndoState();
-    }
-
-    function updateUndoState() {
-        if (undoBtn) undoBtn.disabled = (undoStack.length === 0);
     }
 
     function isInstalledApp() {
@@ -1016,8 +1176,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Startskärmen fungerar som återhämtningsläge: den visas vid bakåt-tryck
-    // och när fullscreen tappats, och BÖRJA FÄRGA-knappen (en äkta gest) tar
-    // tillbaka in i fullscreen. Ritningen på papperet påverkas inte.
+    // och när fullscreen tappats, och BÖRJA MÅLA-knappen (en äkta gest) tar
+    // tillbaka in i fullscreen. Det målade påverkas inte.
     function showStartOverlay() {
         startOverlay.style.display = 'flex';
         resetClearButton();
@@ -1026,21 +1186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Händelsebindningar (tidigare inline i HTML) ---
     document.getElementById('start-btn').addEventListener('click', startApp);
 
-    colorBoxes.forEach(box => {
-        // Click för mus, touchstart för multi-touch under ritning
-        box.addEventListener('click', function() {
-            const color = this.getAttribute('data-color');
-            selectColor(color, this);
-        });
-        box.addEventListener('touchstart', function(e) {
-            e.preventDefault();  // Förhindra ghost clicks (simulerade mus-event)
-            e.stopPropagation(); // Hindra canvas touch-hantering
-            const color = this.getAttribute('data-color');
-            selectColor(color, this);
-        }, { passive: false });
-    });
-
-    // Bläddra mellan bilder. Som färgrutorna: touchstart (med stopPropagation)
+    // Bläddra mellan bilder: touchstart (med stopPropagation) agerar direkt
     // för touch, click för mus.
     [['prev-btn', -1], ['next-btn', 1]].forEach(([id, step]) => {
         const btn = document.getElementById(id);
@@ -1052,66 +1198,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: false });
     });
 
-    // Systemknappar (undo, clear) — håll in HOLD_MS (1 s) för att aktivera.
-    // RENSA har tvåstegs: första hållningen visar SÄKER?, andra hållningen
-    // tömmer duken. Touchstart på knapparna stopPropagates så de inte startar
-    // ett streck; click finns kvar för mus/test på dator (håll via mousedown).
-    function holdStart(target) {
-        const btn = (target === 'undo') ? undoBtn : clearBtn;
-        if (btn.disabled) return;
-        startHold(target);
-        btn.classList.add('holding');
+    // BÖRJA OM — håll in HOLD_MS (1 s) för att aktivera, två gånger (SÄKER?).
+    // Touchstart stopPropagates så den inte målar; mousedown för test på dator.
+    function holdStart() {
+        startHold();
+        restartBtn.classList.add('holding');
     }
     function holdEnd() {
         endHold();
-        undoBtn.classList.remove('holding');
-        clearBtn.classList.remove('holding');
+        restartBtn.classList.remove('holding');
     }
 
-    undoBtn.addEventListener('touchstart', function(e) {
+    restartBtn.addEventListener('touchstart', function(e) {
         e.stopPropagation();
-        holdStart('undo');
-        e.preventDefault();
-    }, { passive: false });
-    clearBtn.addEventListener('touchstart', function(e) {
-        e.stopPropagation();
-        holdStart('clear');
+        holdStart();
         e.preventDefault();
     }, { passive: false });
 
     // Touch-hållning avbryts om fingret glider utanför knappen (samma som
     // mouseleave för mus). Touch-event riktas alltid till elementet där
     // touchen startade, så touchmove på knappen räcker för en bounds-check.
-    function holdTouchMove(e) {
+    restartBtn.addEventListener('touchmove', function(e) {
         const t = e.changedTouches[0];
         const r = this.getBoundingClientRect();
         if (t.clientX < r.left || t.clientX > r.right ||
             t.clientY < r.top || t.clientY > r.bottom) {
             holdEnd();
         }
-    }
-    undoBtn.addEventListener('touchmove', holdTouchMove, { passive: true });
-    clearBtn.addEventListener('touchmove', holdTouchMove, { passive: true });
+    }, { passive: true });
 
     // touchend/cancel på hela fönstret stänger hållningen (fingret lyfts)
     window.addEventListener('touchend', holdEnd, { passive: true });
     window.addEventListener('touchcancel', holdEnd, { passive: true });
 
-    // Mus: mousedown startar hållningen (bara vänster knapp — höger- och
-    // mittklick ignoreras), mouseup/mouseleave avslutar
-    undoBtn.addEventListener('mousedown', function(e) {
+    // Mus: mousedown startar hållningen (bara vänster knapp), mouseup/mouseleave avslutar
+    restartBtn.addEventListener('mousedown', function(e) {
         if (e.button !== 0) return;
         e.stopPropagation();
-        holdStart('undo');
-    });
-    clearBtn.addEventListener('mousedown', function(e) {
-        if (e.button !== 0) return;
-        e.stopPropagation();
-        holdStart('clear');
+        holdStart();
     });
     window.addEventListener('mouseup', holdEnd);
-    undoBtn.addEventListener('mouseleave', holdEnd);
-    clearBtn.addEventListener('mouseleave', holdEnd);
+    restartBtn.addEventListener('mouseleave', holdEnd);
 
     // --- Back-knapp: håll användaren kvar i appen ---
     // Bakåt får aldrig lämna sidan — i pinnat läge strandar den installerade
@@ -1202,14 +1329,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { passive: true });
 
-    // Mus (test på dator): ett klick färgar. På touch-enheter ger
-    // preventDefault i touchstart inget klick, så det blir inte dubbelt.
-    viewCanvas.addEventListener('click', e => fillAt(e.clientX, e.clientY));
+    // Mus (test på dator): dra med vänster knapp nedtryckt för att måla.
+    // På touch-enheter ger preventDefault i touchstart inga mus-event.
+    let mouseLast = null;
+    viewCanvas.addEventListener('mousedown', e => {
+        if (e.button !== 0) return;
+        mouseLast = getPaperCoords(e.clientX, e.clientY);
+        stamp(mouseLast.x, mouseLast.y);
+        checkTouched();
+    });
+    window.addEventListener('mousemove', e => {
+        if (!mouseLast) return;
+        const p = getPaperCoords(e.clientX, e.clientY);
+        stroke(mouseLast.x, mouseLast.y, p.x, p.y);
+        mouseLast = p;
+        checkTouched();
+    });
+    window.addEventListener('mouseup', () => { mouseLast = null; });
 
     viewCanvas.addEventListener('touchstart', onTouchStart, { passive: false });
     viewCanvas.addEventListener('touchmove', onTouchMove, { passive: false });
     window.addEventListener('touchend', onTouchEnd, { passive: true });
-    window.addEventListener('touchcancel', onTouchCancel, { passive: true });
+    window.addEventListener('touchcancel', onTouchEnd, { passive: true });
 
     // Blockera pinch-zoom på iOS — Safari har ignorerat user-scalable=no
     // ända sedan iOS 10. gesturestart är iOS-specifik och finns inte på
