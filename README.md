@@ -10,6 +10,10 @@ Syskon-app till [Kludda](https://github.com/isak-wallo/Kludda) (fri ritning) och
 Öppna **https://isak-wallo.github.io/Farga/** i Chrome på plattan och välj
 "Lägg till på hemskärm" för att installera den (fungerar sedan offline).
 
-Bilder: en traktor, en grävmaskin och ett flygplan (bläddra med ◀ ▶, håll BÖRJA OM två
+Bilder: två traktorer, en grävmaskin, ett flygplan och en helikopter (bläddra med ◀ ▶, håll BÖRJA OM två
 gånger för att sudda bilden). Fler läggs till i
 `PICTURES` i `app.js`.
+
+I varje bild gömmer sig den lilla kompisen
+[Clawd](https://github.com/isak-wallo/clawd) — måla där han är så poppar han
+fram och vinkar.

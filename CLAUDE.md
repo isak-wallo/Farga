@@ -22,6 +22,14 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
   håll 1 s igen → bilden töms; samma spärr som Kluddas RENSA).
 - Varje bild minns det man målat så länge appen är öppen
   (`pictureState`/`loadPicture`).
+- **Clawd** (den lilla orange kompisen från https://github.com/isak-wallo/clawd)
+  gömmer sig i varje bild, som krypet i Richard Scarrys böcker. Han syns
+  inte från början; när man målat `CLAWD_TRAFF` pixlar där han är (eller hans
+  yta fylls i) poppar han upp med en liten studs, vinkar två gånger,
+  blinkar och blir kvar. BÖRJA OM gömmer honom igen.
+- Bilder (i ordning): traktor från sidan, traktor snett framifrån (nära en
+  klassisk målarboksförlaga ägaren skickade), grävmaskin, flygplan (A330) och
+  helikopter.
 - Landskapslås, fullscreen, layoutlås/dö-yta, back-fälla och offline-SW är
   kopierade från Kludda — se Kluddas CLAUDE.md för detaljerna.
 - Hostas via GitHub Pages: `https://isak-wallo.github.io/Farga/`.
@@ -72,6 +80,17 @@ pushas, annars fastnar plattan på gammal cache.
   `MIN_REGION` (små celler mellan detaljstreck) fylls direkt när penseln
   nuddar dem. Ritning sker en gång per frame (`requestRender`, `dirty`).
 
+## Clawd (`ritaClawd`, `prepClawd`, `renderClawd`)
+- Ritas av sina pixelklossar i originalets mått (280 × 178 px, kropp, armar,
+  fyra ben, ögon 24 × 30) i färgen `#d77656`, skalad med `s`. Höger arm
+  flyttas i steg om 12 px när han vinkar (som i repots `clawd-vinka.gif`).
+- Varje bild i `PICTURES` har `clawd: { x, y, s, ytor }`: (x, y) = mitt under
+  fötterna, `ytor` = punkter i de ytor han syns i. Han ritas bara på de
+  ytornas pixlar (mask), ovanpå färgen men under linjerna — så det som
+  ligger framför (molnet, trädkronan, fönsterkarmen, stänkskärmen) skymmer
+  honom och han ser ut att titta fram bakom det. Placera fötterna bakom
+  något så att han "kikar" upp.
+
 ## Bildstil
 Alla bilder är ritade i en finare målarboksstil: tunna jämna konturer
 (`kant = 4–5`), verkliga proportioner (fordonen från sidan, skalade efter
@@ -79,7 +98,8 @@ riktiga mått — se kommentaren över varje `ritaXxx`), fler och mindre ytor
 (fönster, dörrar, motordelar) är OK nu när man målar över i stället för att
 trycka, sol utan ansikte och en lugn bakgrund med tunna linjer
 (`faltBakgrund` för fordonen, `luftBakgrund` för flygplanet). Hjälpare:
-`hjul()` (däck med klackar, fälg, nav), `band()` (böjd bom/sticka längs en
+`hjul()` (däck med klackar, fälg, nav), `hjulSnett()` (samma i perspektiv),
+`band()` (böjd bom/sticka längs en
 bezierkurva), `sol()`, `moln()`. Tänk på vad som skymmer vad (t.ex. motorn
 under flygplanets vinge: rita den före vingen så bara fronten syns).
 
@@ -91,7 +111,8 @@ under flygplanets vinge: rita den före vingen så bara fronten syns).
    `prick()` eller tunna `linje()`-streck med fria ändar så de inte blir
    egna ytor. Slå ihop delar som hör ihop (t.ex. skopa och tänder, rör och
    ljuddämpare) till en `form()`. Lägg bilden i
-   `PICTURES`. Bläddra-knapparna hittar den automatiskt.
+   `PICTURES` med ett gömställe för Clawd (`clawd: {...}`). Bläddra-knapparna
+   hittar den automatiskt.
 2. Kontrollera i webbläsaren att alla ytor får rätt färg (inga läckor):
    ytor som inte ska hänga ihop måste vara helt omslutna. Tänk på att en
    `form()` som läggs ovanpå raderar linjerna under sig — se till att

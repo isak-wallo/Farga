@@ -201,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         vinge:  '#c5ccd5',
         ruta:   '#4d6886',
         jord:   '#cfae84',
+        heli:   '#5fae7e',
         fjarrkulle: '#c6e2b3',
         akerkulle:  '#a9d494'
     };
@@ -617,23 +618,26 @@ document.addEventListener('DOMContentLoaded', () => {
         form(ctx, c => stav(c, 960, 230, 1030, 196, 13), F.ljusstal);
         form(ctx, c => stav(c, 892, 272, 966, 228, 26), F.morkstal);
 
-        // Skopa med tänder
-        const a = [1078, 742], b = [1160, 718];
+        // Skopa från sidan: rak överplatta mellan lederna, rundad rygg,
+        // bottenplatta fram till skäret och tänder som pekar framåt-nedåt.
+        // Ungefär lika djup som hög, som en riktig skopa.
+        const skar = [1056, 730], hal = [1156, 714];
         form(ctx, c => {
-            c.moveTo(1086, 548);
-            c.lineTo(1150, 548);
-            c.bezierCurveTo(1196, 580, 1200, 670, b[0], b[1]);
-            c.lineTo(a[0], a[1]);
-            c.bezierCurveTo(1078, 680, 1080, 600, 1086, 548);
+            c.moveTo(1088, 550);
+            c.lineTo(1164, 556);
+            c.bezierCurveTo(1198, 590, 1198, 676, hal[0], hal[1]);
+            c.lineTo(skar[0], skar[1]);
+            c.bezierCurveTo(1064, 680, 1076, 610, 1088, 550);
             c.closePath();
-            [0.15, 0.45, 0.75].forEach(t => {
-                const p0 = [a[0] + (b[0] - a[0]) * (t - 0.08), a[1] + (b[1] - a[1]) * (t - 0.08)];
-                const p1 = [a[0] + (b[0] - a[0]) * (t + 0.08), a[1] + (b[1] - a[1]) * (t + 0.08)];
-                const m = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2];
-                mangel(c, [p0, p1, [m[0] - 6, m[1] + 22]]);
+            // Tänder längs skäret (medurs, som resten av formen)
+            [[1056, 730], [1082, 726], [1108, 722]].forEach(([x, y]) => {
+                mangel(c, [[x, y - 4], [x + 18, y - 7], [x + 6, y + 20]]);
             });
         }, F.gul);
-        linje(ctx, c => { c.moveTo(1158, 574); c.bezierCurveTo(1180, 610, 1178, 670, 1150, 700); }, 3);
+        // Sidoplåtens förstärkning, slitskena och kant vid öppningen (fria ändar)
+        linje(ctx, c => { c.moveTo(1160, 580); c.bezierCurveTo(1182, 615, 1180, 670, 1150, 698); }, 3);
+        linje(ctx, c => { c.moveTo(1140, 704); c.lineTo(1078, 713); }, 3);
+        linje(ctx, c => { c.moveTo(1094, 568); c.bezierCurveTo(1086, 610, 1078, 660, 1074, 700); }, 3);
         prick(ctx, 1115, 560, 9);
 
         // Skopcylinder och länk längs stickan
@@ -656,13 +660,12 @@ document.addEventListener('DOMContentLoaded', () => {
             c.moveTo(614, 588); c.lineTo(616, 520);
             c.quadraticCurveTo(618, 506, 632, 508); c.lineTo(636, 560); c.lineTo(652, 562);
         }, 3);
-        linje(ctx, c => { c.moveTo(700, 452); c.lineTo(734, 520); }, 3);   // torkare
         linje(ctx, c => { c.moveTo(704, 622); c.lineTo(730, 622); }, 4);   // handtag
     }
 
     // Lugn bakgrund för flygplanet, i finare målarboksstil: tunna linjer,
     // två kullar långt ner, några små träd, moln och en sol utan ansikte.
-    function luftBakgrund(ctx) {
+    function luftBakgrund(ctx, molnLista) {
         const bortre = c => {
             c.moveTo(-20, 735);
             c.bezierCurveTo(150, 690, 330, 690, 480, 730);
@@ -703,7 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         sol(ctx, 1095, 100);
-        [[650, 140, 0.9], [1040, 600, 0.75], [150, 600, 0.65]].forEach(m => moln(ctx, m[0], m[1], m[2]));
+        molnLista.forEach(m => moln(ctx, m[0], m[1], m[2]));
     }
 
     // Flygplan (ungefär en Airbus A330) från sidan, på väg uppåt åt höger.
@@ -713,7 +716,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function ritaFlygplan(ctx) {
         stilSatt(ctx);
         kant = 4;
-        luftBakgrund(ctx);
+        luftBakgrund(ctx, [[650, 140, 0.9], [1040, 600, 0.75], [150, 600, 0.65]]);
         kant = 5;
 
         ctx.save();
@@ -803,10 +806,259 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.restore();
     }
 
+    // Däck och fälg i perspektiv (ellipser): klackar runt däcket, fälg,
+    // nav och bultar. (cx, cy, rx, ry) = däcket, (fx, fy, frx, fry) = fälgen.
+    function hjulSnett(ctx, cx, cy, rx, ry, fx, fy, frx, fry) {
+        form(ctx, c => ellips(c, cx, cy, rx, ry), F.dack);
+        // Klackar: grova på vänstra sidan där slitbanan syns, korta runt om
+        for (let g = 0; g < 360; g += 12) {
+            const a = g * Math.PI / 180;
+            const grov = g > 100 && g < 260;
+            const f = grov ? 0.62 : 0.84;
+            linje(ctx, c => {
+                c.moveTo(cx + Math.cos(a) * rx, cy + Math.sin(a) * ry);
+                c.lineTo(cx + Math.cos(a + 0.1) * rx * f, cy + Math.sin(a + 0.1) * ry * f);
+            }, grov ? 5 : 3);
+        }
+        form(ctx, c => ellips(c, fx, fy, frx, fry), F.falg);
+        linje(ctx, c => c.ellipse(fx + frx * 0.08, fy, frx * 0.7, fry * 0.7, 0, 0.2 * Math.PI, 1.8 * Math.PI), 3);
+        form(ctx, c => ellips(c, fx + frx * 0.12, fy + fry * 0.04, frx * 0.34, fry * 0.34), F.stal);
+        for (let k = 0; k < 6; k++) {
+            const a = k * Math.PI / 3;
+            prick(ctx, fx + frx * 0.12 + Math.cos(a) * frx * 0.22, fy + fry * 0.04 + Math.sin(a) * fry * 0.22, 3);
+        }
+        prick(ctx, fx + frx * 0.12, fy + fry * 0.04, 5);
+    }
+
+    // Traktor snett framifrån, nära förlagan ägaren skickade (klassisk
+    // målarbok). Ritad i förlagans koordinater (1024-bilden) och skalad in.
+    function ritaTraktorSnett(ctx) {
+        stilSatt(ctx);
+        kant = 4;
+        faltBakgrund(ctx, {
+            sol: [110, 95], moln: [[330, 120, 0.7], [1020, 190, 0.55]],
+            trad: [[1100, 450, 0.8], [70, 456, 0.38], [120, 460, 0.3]]
+        });
+        kant = 5;
+
+        ctx.save();
+        ctx.translate(60, -120);
+        ctx.scale(1.05, 1.05);
+
+        // Avgasrör med ljuddämpare och nät
+        form(ctx, c => {
+            stav(c, 352, 445, 352, 268, 18);
+            stav(c, 352, 268, 344, 254, 18);
+            rr(c, 333, 328, 38, 104, 6);
+        }, F.stal);
+        for (let k = 0; k < 4; k++) {
+            linje(ctx, c => { c.moveTo(341, 344 + k * 20); c.lineTo(363, 360 + k * 20); }, 3);
+            linje(ctx, c => { c.moveTo(363, 344 + k * 20); c.lineTo(341, 360 + k * 20); }, 3);
+        }
+
+        // Bortre framhjulet (bakom stötfångaren)
+        hjulSnett(ctx, 238, 700, 70, 94, 250, 706, 30, 50);
+
+        // Ram under huven
+        form(ctx, c => mangel(c, [[372, 600], [600, 585], [650, 600], [650, 650], [390, 672]]), F.morkstal);
+
+        // Hytt: sida, front, varningsljus och tak
+        form(ctx, c => rmangel(c, [[582, 240], [750, 250], [754, 545], [590, 560]], 8), F.rod);
+        form(ctx, c => rmangel(c, [[424, 254], [582, 240], [590, 452], [408, 442]], 8), F.rod);
+        tunnForm(ctx, c => rr(c, 436, 214, 24, 16, 5), F.sol, 4);
+        tunnForm(ctx, c => rr(c, 562, 196, 24, 16, 5), F.sol, 4);
+        form(ctx, c => rmangel(c, [[414, 230], [575, 208], [750, 226], [756, 250], [578, 240], [410, 256]], 10), F.ljusstal);
+
+        // Rutor: vindruta, dörr och bakre sidoruta
+        form(ctx, c => rmangel(c, [[438, 268], [568, 258], [574, 432], [424, 426]], 10), F.glas);
+        form(ctx, c => rmangel(c, [[600, 262], [690, 266], [690, 420], [602, 424]], 8), F.glas);
+        form(ctx, c => rmangel(c, [[702, 268], [738, 271], [738, 410], [702, 416]], 8), F.glas);
+        // Ratt och torkare genom vindrutan, stol genom dörrens ruta
+        linje(ctx, c => c.ellipse(520, 390, 30, 10, -0.1, 0, 2 * Math.PI), 3);
+        linje(ctx, c => { c.moveTo(526, 400); c.lineTo(536, 420); }, 3);
+        linje(ctx, c => { c.moveTo(456, 412); c.lineTo(504, 284); }, 3);
+        linje(ctx, c => {
+            c.moveTo(614, 410); c.lineTo(618, 352);
+            c.quadraticCurveTo(622, 338, 640, 340); c.lineTo(648, 384); c.lineTo(676, 388);
+        }, 3);
+        // Dörrfogar och handtag
+        linje(ctx, c => { c.moveTo(597, 440); c.lineTo(599, 548); }, 3);
+        linje(ctx, c => { c.moveTo(694, 436); c.lineTo(696, 540); }, 3);
+        linje(ctx, c => { c.moveTo(612, 456); c.lineTo(634, 456); }, 4);
+
+        // Huv med front och sida
+        form(ctx, c => {
+            c.moveTo(248, 500);
+            c.bezierCurveTo(250, 470, 272, 455, 305, 450);
+            c.lineTo(520, 424);
+            c.bezierCurveTo(548, 420, 575, 428, 590, 445);
+            c.lineTo(590, 598);
+            c.lineTo(372, 630);
+            c.lineTo(262, 634);
+            c.bezierCurveTo(254, 600, 248, 550, 248, 500);
+            c.closePath();
+        }, F.rod);
+        linje(ctx, c => { c.moveTo(350, 445); c.quadraticCurveTo(372, 470, 372, 630); }, 4);   // kant front/sida
+        linje(ctx, c => { c.moveTo(392, 470); c.quadraticCurveTo(470, 450, 566, 448); }, 3);   // huvens rundning
+        for (let k = 0; k < 4; k++) {                                                          // luftspringor
+            linje(ctx, c => { c.moveTo(478 + k * 14, 474); c.lineTo(478 + k * 14, 516); }, 3);
+        }
+        linje(ctx, c => { c.moveTo(404, 548); c.lineTo(570, 532); }, 3);                       // panelfog
+
+        // Grill i två halvor, strålkastare
+        form(ctx, c => rmangel(c, [[262, 490], [338, 484], [340, 612], [266, 618]], 14), F.stal);
+        linje(ctx, c => { c.moveTo(300, 487); c.lineTo(302, 615); }, 5);
+        [276, 288, 314, 326].forEach(x => linje(ctx, c => { c.moveTo(x, 502); c.lineTo(x + 1, 600); }, 3));
+        form(ctx, c => cirkel(c, 234, 552, 14), F.glas);
+        form(ctx, c => cirkel(c, 390, 566, 22), F.glas);
+        linje(ctx, c => c.arc(390, 566, 12, 0.3 * Math.PI, 1.7 * Math.PI), 3);
+
+        // Stötfångare / frontvikt
+        form(ctx, c => rmangel(c, [[232, 640], [372, 632], [412, 645], [410, 688], [372, 698], [236, 686]], 6), F.morkstal);
+        linje(ctx, c => { c.moveTo(372, 632); c.lineTo(372, 698); }, 4);
+
+        // Närmre framhjulet
+        hjulSnett(ctx, 486, 718, 76, 84, 494, 722, 40, 52);
+
+        // Fotsteg upp till hytten
+        linje(ctx, c => { c.moveTo(592, 572); c.lineTo(602, 690); }, 4);
+        linje(ctx, c => { c.moveTo(628, 568); c.lineTo(640, 686); }, 4);
+        [604, 636, 668].forEach(y => linje(ctx, c => { c.moveTo(595, y); c.lineTo(634, y - 2); }, 4));
+
+        // Bakhjulet och stänkskärmen
+        hjulSnett(ctx, 762, 625, 120, 155, 795, 622, 50, 82);
+        form(ctx, c => {
+            c.moveTo(640, 585);
+            c.bezierCurveTo(642, 505, 700, 440, 788, 436);
+            c.bezierCurveTo(830, 435, 856, 452, 860, 478);
+            c.lineTo(846, 490);
+            c.bezierCurveTo(800, 466, 722, 470, 688, 520);
+            c.bezierCurveTo(672, 545, 664, 568, 662, 588);
+            c.closePath();
+        }, F.rod);
+
+        ctx.restore();
+    }
+
+    // Helikopter (en lätt ambulans-/polishelikopter i storlek som en
+    // H135) i luften, snett framifrån: vi ser vänster sida och lite av
+    // fronten, rotorn som en platt ellips ovanför.
+    function ritaHelikopter(ctx) {
+        stilSatt(ctx);
+        kant = 4;
+        luftBakgrund(ctx, [[180, 130, 0.8], [700, 90, 0.6], [1050, 560, 0.7]]);
+        kant = 5;
+
+        // Bortre meden (bakom kroppen)
+        form(ctx, c => {
+            stav(c, 420, 598, 760, 584, 11);
+            stav(c, 420, 598, 396, 580, 11);
+        }, F.morkstal);
+
+        // Stjärtbom, fena, stabilisator och stjärtrotor
+        form(ctx, c => mangel(c, [[690, 382], [1040, 318], [1048, 342], [700, 452]]), F.heli);
+        form(ctx, c => rmangel(c, [[1006, 330], [1060, 236], [1092, 240], [1064, 340], [1076, 392], [1056, 394]], 8), F.heli);
+        form(ctx, c => mangel(c, [[930, 340], [978, 330], [958, 378], [932, 380]]), F.heli);
+        tunnForm(ctx, c => ellips(c, 1048, 288, 14, 44), F.ljusstal, 3);
+        linje(ctx, c => { c.moveTo(1040, 254); c.lineTo(1056, 322); c.moveTo(1036, 296); c.lineTo(1060, 280); }, 4);
+        prick(ctx, 1048, 288, 6);
+
+        // Kroppen
+        const kropp = c => {
+            c.moveTo(232, 470);
+            c.bezierCurveTo(240, 390, 300, 330, 400, 318);
+            c.lineTo(640, 318);
+            c.bezierCurveTo(700, 330, 722, 380, 722, 420);
+            c.bezierCurveTo(716, 480, 690, 540, 620, 556);
+            c.lineTo(330, 560);
+            c.bezierCurveTo(270, 556, 234, 522, 232, 470);
+            c.closePath();
+        };
+        form(ctx, kropp, F.heli);
+        // Vit nederdel (gräns som når kroppens kant i båda ändar)
+        const vitLinje = c => {
+            c.moveTo(238, 505);
+            c.bezierCurveTo(400, 500, 600, 496, 712, 470);
+        };
+        if (fargLage) {
+            ctx.save();
+            ctx.beginPath();
+            kropp(ctx);
+            ctx.clip();
+            ctx.beginPath();
+            vitLinje(ctx);
+            ctx.lineTo(800, 700);
+            ctx.lineTo(200, 700);
+            ctx.closePath();
+            ctx.fillStyle = F.flygkropp;
+            ctx.fill();
+            ctx.restore();
+        }
+        linje(ctx, vitLinje, 4);
+
+        // Motorkåpa på taket med luftintag
+        form(ctx, c => {
+            c.moveTo(440, 324);
+            c.bezierCurveTo(460, 292, 600, 286, 642, 306);
+            c.bezierCurveTo(660, 316, 656, 326, 640, 328);
+            c.lineTo(440, 330);
+            c.closePath();
+        }, F.heli);
+        [470, 488, 506].forEach(x => linje(ctx, c => { c.moveTo(x, 306); c.lineTo(x + 4, 320); }, 3));
+
+        // Glaskupol fram (delad av en mittbåge) och rutor på sidan
+        form(ctx, c => {
+            c.moveTo(252, 462);
+            c.bezierCurveTo(258, 400, 300, 350, 385, 335);
+            c.lineTo(398, 335);
+            c.bezierCurveTo(385, 400, 372, 450, 366, 492);
+            c.bezierCurveTo(320, 497, 280, 494, 252, 476);
+            c.closePath();
+        }, F.glas);
+        linje(ctx, c => { c.moveTo(318, 342); c.quadraticCurveTo(284, 400, 280, 488); }, 5);
+        form(ctx, c => rmangel(c, [[415, 340], [520, 338], [522, 452], [410, 456]], 14), F.glas);
+        form(ctx, c => rmangel(c, [[542, 340], [632, 346], [646, 420], [542, 440]], 14), F.glas);
+        // Dörrfogar (från taket ner till kroppens underkant) och handtag
+        linje(ctx, c => { c.moveTo(404, 318); c.lineTo(398, 560); }, 3);
+        linje(ctx, c => { c.moveTo(532, 318); c.lineTo(530, 558); }, 3);
+        linje(ctx, c => { c.moveTo(500, 474); c.lineTo(520, 474); }, 4);
+        tunnForm(ctx, c => rr(c, 300, 536, 26, 12, 5), F.sol, 3);    // landningsljus
+
+        // Närmre meden med stag
+        form(ctx, c => {
+            stav(c, 380, 556, 370, 632, 10);
+            stav(c, 610, 552, 620, 622, 10);
+        }, F.morkstal);
+        form(ctx, c => {
+            stav(c, 300, 638, 720, 622, 12);
+            stav(c, 300, 638, 268, 612, 12);
+        }, F.morkstal);
+
+        // Rotormast, nav och fyra blad (rotorskivan ses som en platt ellips)
+        form(ctx, c => stav(c, 540, 300, 540, 250, 14), F.morkstal);
+        form(ctx, c => {
+            [0.35, 1.92, 3.49, 5.06].forEach(v => {
+                stav(c, 540, 244, 540 + Math.cos(v) * 500, 244 + Math.sin(v) * 72, 14);
+            });
+            ellips(c, 540, 244, 30, 11);
+        }, F.morkstal);
+
+    }
+
+    // Bilderna. `clawd` = var den lilla kompisen Clawd gömmer sig:
+    // (x, y) = mitt under fötterna, s = skala, `ytor` = punkter i de ytor han
+    // syns i (han ritas bara där, så det som ligger framför skymmer honom).
     const PICTURES = [
-        { namn: 'Traktor', rita: ritaTraktor },
-        { namn: 'Grävmaskin', rita: ritaGravmaskin },
-        { namn: 'Flygplan', rita: ritaFlygplan }
+        { namn: 'Traktor', rita: ritaTraktor,
+          clawd: { x: 372, y: 442, s: 0.36, ytor: [[372, 330]] } },        // i bakre rutan
+        { namn: 'Traktor snett', rita: ritaTraktorSnett,
+          clawd: { x: 1100, y: 360, s: 0.24, ytor: [[1100, 310]] } },     // bakom trädet
+        { namn: 'Grävmaskin', rita: ritaGravmaskin,
+          clawd: { x: 706, y: 604, s: 0.28, ytor: [[706, 520]] } },       // i hytten
+        { namn: 'Flygplan', rita: ritaFlygplan,
+          clawd: { x: 1040, y: 574, s: 0.34, ytor: [[1040, 500]] } },     // bakom molnet
+        { namn: 'Helikopter', rita: ritaHelikopter,
+          clawd: { x: 466, y: 470, s: 0.32, ytor: [[466, 380]] } }         // i dörrens ruta
     ];
     let currentPicture = 0;
 
@@ -916,6 +1168,107 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Clawd ---
+    // Den busiga lilla kompisen (från repot isak-wallo/clawd) gömmer sig i
+    // varje bild, som krypet i Richard Scarrys böcker. Han syns inte från
+    // början; när man målar där han är poppar han upp, vinkar och blir kvar.
+    // Han ritas av sina pixelklossar (originalets mått 280 x 178 px, origo
+    // nere till vänster), så han blir skarp i alla storlekar.
+    const CLAWD_ORANGE = '#d77656';
+    const CLAWD_TRAFF = 40;     // så många målade pixlar på honom innan han poppar
+    const CLAWD_MS = 3200;      // hela animationen: upp, vinka, blinka
+    let clawd = null;           // { x, y, s, box, mask, tmp, hittad, start, traff }
+    let clawdYta = new Uint8Array(1);   // 1 för ytor han syns i
+
+    function ritaClawd(ctx, x, y, s, arm, blink) {
+        const X = v => Math.round(x + (v - 140) * s), Y = v => Math.round(y + v * s);
+        const kloss = (x0, y0, x1, y1) => ctx.fillRect(X(x0), Y(y0), X(x1) - X(x0), Y(y1) - Y(y0));
+        ctx.fillStyle = CLAWD_ORANGE;
+        kloss(48, -178, 232, -42);                 // kropp
+        kloss(0, -130, 48, -86);                   // vänster arm
+        const ay = -130 - Math.round(arm * 4) * 12;  // höger arm, flyttas i steg om 12 px
+        kloss(232, ay, 280, ay + 44);
+        [[48, 72], [96, 116], [164, 188], [212, 232]].forEach(([a, b]) => kloss(a, -42, b, 0));
+        ctx.fillStyle = '#000';
+        if (blink) {
+            kloss(72, -142, 96, -136);
+            kloss(188, -142, 212, -136);
+        } else {
+            kloss(72, -154, 96, -124);
+            kloss(188, -154, 212, -124);
+        }
+    }
+
+    // Förbereder Clawd för bilden: ruta, mask (de ytor han syns i) och
+    // en arbetscanvas. Anropas efter labelRegions.
+    function prepClawd(c, hittad) {
+        clawdYta = new Uint8Array(regionSize.length);
+        c.ytor.forEach(([px, py]) => {
+            const l = labels[Math.round(py) * PAPER_W + Math.round(px)];
+            if (l > 0) clawdYta[l] = 1;
+        });
+        // Rutan rymmer honom plus lite luft ovanför (han studsar lite förbi)
+        const x0 = Math.max(0, Math.floor(c.x - 142 * c.s));
+        const x1 = Math.min(PAPER_W - 1, Math.ceil(c.x + 142 * c.s));
+        const y0 = Math.max(0, Math.floor(c.y - 178 * c.s * 1.2));
+        const y1 = Math.min(PAPER_H - 1, Math.ceil(c.y));
+        const w = x1 - x0 + 1, h = y1 - y0 + 1;
+        const mask = document.createElement('canvas');
+        mask.width = w;
+        mask.height = h;
+        const mctx = mask.getContext('2d');
+        const img = mctx.createImageData(w, h);
+        const px = new Uint32Array(img.data.buffer);
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                if (clawdYta[labels[(y0 + y) * PAPER_W + x0 + x]]) px[y * w + x] = 0xFF000000;
+            }
+        }
+        mctx.putImageData(img, 0, 0);
+        const tmp = document.createElement('canvas');
+        tmp.width = w;
+        tmp.height = h;
+        clawd = { x: c.x, y: c.y, s: c.s, box: { x0, y0, x1, y1, w, h },
+                  mask, tmp, hittad, start: -Infinity, traff: 0 };
+    }
+
+    function poppaClawd() {
+        if (!clawd || clawd.hittad) return;
+        clawd.hittad = true;
+        clawd.start = performance.now();
+        requestRender();
+    }
+
+    // Ritar Clawd (om han är hittad) på vCtx, som redan har bildens transform.
+    // Returnerar true medan animationen pågår.
+    function renderClawd(now) {
+        if (!clawd || !clawd.hittad) return false;
+        const t = now - clawd.start;
+        const b = clawd.box, hojd = 178 * clawd.s;
+        // Upp bakom kanten med en liten studs (0–600 ms)
+        let upp = 1;
+        if (t < 600) {
+            const p = t / 600, k = 1.5;
+            upp = 1 + (k + 1) * Math.pow(p - 1, 3) + k * Math.pow(p - 1, 2);
+        }
+        // Vinkar två gånger (700–2300 ms), blinkar en gång efteråt
+        let arm = 0;
+        if (t > 700 && t < 2300) {
+            const v = ((t - 700) / 800) % 1;
+            arm = v < 0.5 ? Math.min(1, v * 4) : Math.max(0, (1 - v) * 4);
+        }
+        const blink = t > 2600 && t < 2760;
+        const tctx = clawd.tmp.getContext('2d');
+        tctx.globalCompositeOperation = 'source-over';
+        tctx.clearRect(0, 0, b.w, b.h);
+        ritaClawd(tctx, clawd.x - b.x0, clawd.y - b.y0 + (1 - upp) * hojd, clawd.s, arm, blink);
+        tctx.globalCompositeOperation = 'destination-in';
+        tctx.drawImage(clawd.mask, 0, 0);
+        tctx.globalCompositeOperation = 'source-over';
+        vCtx.drawImage(clawd.tmp, b.x0, b.y0);
+        return t < CLAWD_MS;
+    }
+
     // Varje bild minns det man målat medan appen är öppen, så man kan
     // bläddra fram och tillbaka utan att förlora något.
     const pictureState = [];
@@ -924,7 +1277,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadPicture(index) {
         if (pictureLoaded) {
             finishFades();
-            pictureState[currentPicture] = fillPx.slice();
+            pictureState[currentPicture] = { fill: fillPx.slice(), clawd: !!(clawd && clawd.hittad) };
         }
         pictureLoaded = true;
         currentPicture = index;
@@ -943,8 +1296,9 @@ document.addEventListener('DOMContentLoaded', () => {
         pickRegionColors();
         fades.length = 0;
         const saved = pictureState[index];
+        prepClawd(PICTURES[index].clawd, !!(saved && saved.clawd));
         if (saved) {
-            fillPx.set(saved);
+            fillPx.set(saved.fill);
             for (let i = 0, n = labels.length; i < n; i++) {
                 const l = labels[i];
                 if (l > 0 && fillPx[i] !== PAPER) regionPainted[l]++;
@@ -1042,9 +1396,10 @@ document.addEventListener('DOMContentLoaded', () => {
             dirty = null;
             vCtx.drawImage(fillCanvas, 0, 0);
         }
+        const clawdRor = renderClawd(now);
         vCtx.drawImage(lineCanvas, 0, 0);
         vCtx.setTransform(1, 0, 0, 1, 0, 0);
-        if (fades.length) requestRender();
+        if (fades.length || clawdRor) requestRender();
     }
 
     // Skärmkoordinat -> bildkoordinat (inversen av xf)
@@ -1081,8 +1436,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (xa > xb) continue;
             if (xa < minX) minX = xa;
             if (xb > maxX) maxX = xb;
+            const kollaClawd = clawd && !clawd.hittad && y >= clawd.box.y0 && y <= clawd.box.y1;
             for (let i = y * W + xa, end = y * W + xb; i <= end; i++) {
                 const l = labels[i];
+                if (kollaClawd && clawdYta[l]) {
+                    const x = i - y * W;
+                    if (x >= clawd.box.x0 && x <= clawd.box.x1) clawd.traff++;
+                }
                 if (l <= 0 || regionDone[l] || fillPx[i] !== PAPER) continue;
                 fillPx[i] = regionColor[l];
                 regionPainted[l]++;
@@ -1113,6 +1473,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         touched.clear();
+        if (clawd && !clawd.hittad && clawd.traff >= CLAWD_TRAFF) poppaClawd();
         if (clearState) resetClearButton();
         requestRender();
     }
@@ -1121,6 +1482,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ovanpå; när toningen är klar skrivs den in i fillPx (commitRegion).
     function startFade(id) {
         regionDone[id] = 1;
+        if (clawdYta[id]) poppaClawd();
         const W = PAPER_W;
         const x0 = regionLeft[id], y0 = regionTop[id];
         const w = regionRight[id] - x0 + 1, h = regionBottom[id] - y0 + 1;
@@ -1205,6 +1567,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimer = setTimeout(resetClearButton, 5000);
         } else {
             fades.length = 0;
+            if (clawd) { clawd.hittad = false; clawd.traff = 0; }
             fillPx.fill(PAPER);
             regionPainted.fill(0);
             regionDone.fill(0);
