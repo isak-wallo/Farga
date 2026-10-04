@@ -208,7 +208,13 @@ document.addEventListener('DOMContentLoaded', () => {
         jord:   '#cfae84',
         heli:   '#5fae7e',
         fjarrkulle: '#c6e2b3',
-        akerkulle:  '#a9d494'
+        akerkulle:  '#a9d494',
+        kulle2:     '#b7dba1',   // kulle mellan fjärr- och åkerkullen
+        mark:       '#9ccb85',   // gräset längst fram
+        morkgul:    '#dcab3c',
+        asfalt:     '#b9bdc4',
+        vit:        '#f7f7f2',
+        fonster:    '#b3d8f0'    // lite djupare än himlen så rutan inte ser ut som ett hål
     };
 
     function rr(ctx, x, y, w, h, r) {
@@ -399,15 +405,6 @@ document.addEventListener('DOMContentLoaded', () => {
         grastuss(ctx, 1150, 870, 1);
     }
 
-    // Punkt på en kubisk bezierkurva (p = fyra [x, y]-punkter, t 0..1)
-    function bez(p, t) {
-        const u = 1 - t;
-        return [
-            u * u * u * p[0][0] + 3 * u * u * t * p[1][0] + 3 * u * t * t * p[2][0] + t * t * t * p[3][0],
-            u * u * u * p[0][1] + 3 * u * u * t * p[1][1] + 3 * u * t * t * p[2][1] + t * t * t * p[3][1]
-        ];
-    }
-
     // Månghörning med rundade hörn (punkter medurs, r = hörnradie)
     function rmangel(ctx, pts, r) {
         const n = pts.length;
@@ -421,254 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.closePath();
     }
 
-    // Ett böjt band (bom, sticka) längs en bezierkurva p. Bredden går från
-    // w0 till w1, med `buk` extra på mitten. Ändarna rundas med cirklar.
-    // Punkterna vänds alltid medurs så att cirklarna inte gör hål.
-    function band(ctx, p, w0, w1, buk) {
-        const N = 24, L = [], R = [];
-        for (let i = 0; i <= N; i++) {
-            const t = i / N;
-            const a = bez(p, Math.max(0, t - 0.01)), b = bez(p, Math.min(1, t + 0.01));
-            const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-            const nx = -(b[1] - a[1]) / len, ny = (b[0] - a[0]) / len;
-            const w = (w0 * (1 - t) + w1 * t + buk * Math.sin(Math.PI * t)) / 2;
-            const q = bez(p, t);
-            L.push([q[0] + nx * w, q[1] + ny * w]);
-            R.push([q[0] - nx * w, q[1] - ny * w]);
-        }
-        const pts = L.concat(R.reverse());
-        let area = 0;
-        for (let i = 0; i < pts.length; i++) {
-            const q = pts[i], r = pts[(i + 1) % pts.length];
-            area += q[0] * r[1] - r[0] * q[1];
-        }
-        if (area < 0) pts.reverse();
-        mangel(ctx, pts);
-        cirkel(ctx, p[0][0], p[0][1], w0 / 2);
-        cirkel(ctx, p[3][0], p[3][1], w1 / 2);
-    }
-
-    // Hjul från sidan: däck med klackar, fälg (andel f av radien), nav och bultar.
-    function hjul(ctx, cx, cy, r, f) {
-        form(ctx, c => cirkel(c, cx, cy, r), F.dack);
-        const rf = r * f;
-        const n = Math.round(r / 7);
-        for (let k = 0; k < n; k++) {       // klackar: når bara däckets ytterkant
-            const a = k * 2 * Math.PI / n;
-            const ri = rf + (r - rf) * 0.4;
-            linje(ctx, c => {
-                c.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
-                c.lineTo(cx + Math.cos(a + 0.09) * ri, cy + Math.sin(a + 0.09) * ri);
-            }, 3);
-        }
-        form(ctx, c => cirkel(c, cx, cy, rf), F.falg);
-        linje(ctx, c => c.arc(cx, cy, rf * 0.72, 0.2 * Math.PI, 1.8 * Math.PI), 3);
-        form(ctx, c => cirkel(c, cx, cy, rf * 0.34), F.stal);
-        for (let k = 0; k < 8; k++) {
-            const a = k * Math.PI / 4;
-            prick(ctx, cx + Math.cos(a) * rf * 0.22, cy + Math.sin(a) * rf * 0.22, 3);
-        }
-        prick(ctx, cx, cy, 6);
-    }
-
-    // Traktor från sidan, fronten åt höger. Verkliga proportioner
-    // (ungefär 1 m = 190 px): bakhjul 1,7 m, framhjul 1,2 m, axelavstånd
-    // 2,6 m, höjd 3 m. Marken ligger på y = 785.
-    function ritaTraktor(ctx) {
-        stilSatt(ctx);
-        kant = 4;
-        faltBakgrund(ctx, {
-            sol: [1100, 95], moln: [[330, 110, 0.8], [800, 90, 0.65]],
-            trad: [[95, 455, 0.45], [145, 458, 0.34], [1010, 442, 0.4]]
-        });
-        kant = 5;
-
-        // Avgasrör med ljuddämpare framför hytten
-        form(ctx, c => {
-            stav(c, 612, 405, 612, 214, 18);
-            rr(c, 598, 250, 28, 108, 8);
-        }, F.stal);
-        linje(ctx, c => { c.moveTo(606, 268); c.lineTo(606, 340); }, 3);
-
-        // Varningsljus, hytt, tak och rutor
-        tunnForm(ctx, c => rr(c, 424, 184, 30, 24, 8), F.sol, 4);
-        form(ctx, c => rmangel(c, [[300, 232], [565, 232], [580, 525], [292, 525]], 14), F.rod);
-        form(ctx, c => rmangel(c, [[282, 204], [590, 204], [596, 238], [276, 238]], 12), F.ljusstal);
-        form(ctx, c => rmangel(c, [[318, 254], [548, 254], [560, 436], [314, 436]], 10), F.glas);
-        linje(ctx, c => { c.moveTo(430, 254); c.lineTo(429, 436); }, 9);     // dörrstolpe
-        // Säte och ratt syns genom rutan (fria ändar)
-        linje(ctx, c => {
-            c.moveTo(452, 424); c.lineTo(454, 362);
-            c.quadraticCurveTo(456, 348, 470, 350); c.lineTo(474, 400); c.lineTo(506, 402);
-        }, 3);
-        linje(ctx, c => { c.moveTo(540, 424); c.lineTo(524, 382); }, 3);
-        linje(ctx, c => c.ellipse(520, 374, 18, 7, -0.3, 0, 2 * Math.PI), 3);
-        linje(ctx, c => { c.moveTo(500, 470); c.lineTo(530, 470); }, 4);    // dörrhandtag
-        // Backspegel
-        linje(ctx, c => { c.moveTo(566, 252); c.lineTo(604, 262); }, 4);
-        tunnForm(ctx, c => rr(c, 600, 246, 14, 38, 5), F.morkstal, 4);
-
-        // Ram under huven och huven
-        form(ctx, c => rmangel(c, [[590, 548], [1010, 548], [1010, 612], [590, 612]], 6), F.morkstal);
-        form(ctx, c => {
-            c.moveTo(560, 398);
-            c.lineTo(940, 410);
-            c.bezierCurveTo(975, 412, 990, 426, 992, 450);
-            c.lineTo(998, 560);
-            c.lineTo(560, 560);
-            c.closePath();
-        }, F.rod);
-        for (let x = 870; x <= 950; x += 16) {     // luftgaller
-            linje(ctx, c => { c.moveTo(x, 440); c.lineTo(x, 522); }, 3);
-        }
-        linje(ctx, c => { c.moveTo(584, 470); c.lineTo(842, 478); }, 3);   // panelfog
-        tunnForm(ctx, c => rr(c, 944, 424, 36, 18, 7), F.glas, 4);        // strålkastare
-
-        // Frontvikter med spår
-        form(ctx, c => rmangel(c, [[996, 540], [1076, 548], [1076, 642], [996, 642]], 8), F.morkstal);
-        [1018, 1037, 1056].forEach(x => linje(ctx, c => { c.moveTo(x, 560); c.lineTo(x, 628); }, 3));
-
-        // Bränsletank mellan hjulen
-        form(ctx, c => rr(c, 552, 574, 112, 62, 14), F.ljusstal);
-        linje(ctx, c => { c.moveTo(570, 590); c.lineTo(646, 590); }, 3);
-
-        // Hjulen
-        hjul(ctx, 380, 622, 163, 0.58);
-        hjul(ctx, 874, 670, 115, 0.58);
-
-        // Stänkskärmar
-        form(ctx, c => {
-            c.arc(380, 622, 190, Math.PI * 1.06, Math.PI * 1.97);
-            c.arc(380, 622, 172, Math.PI * 1.97, Math.PI * 1.06, true);
-            c.closePath();
-        }, F.rod);
-        form(ctx, c => {
-            c.arc(874, 670, 134, Math.PI * 1.12, Math.PI * 1.86);
-            c.arc(874, 670, 122, Math.PI * 1.86, Math.PI * 1.12, true);
-            c.closePath();
-        }, F.rod);
-    }
-
-    // Grävmaskin (ungefär 20 ton) från sidan, riktad åt höger. Verkliga
-    // proportioner (ungefär 1 m = 125 px). Marken ligger på y = 785.
-    function ritaGravmaskin(ctx) {
-        stilSatt(ctx);
-        kant = 4;
-        faltBakgrund(ctx, {
-            sol: [110, 95], moln: [[480, 105, 0.8], [880, 80, 0.6]],
-            trad: [[1060, 440, 0.4], [1110, 446, 0.32], [300, 432, 0.38]]
-        });
-        kant = 5;
-
-        // Jordhög under skopan
-        form(ctx, c => {
-            c.moveTo(860, 800);
-            c.bezierCurveTo(930, 720, 1050, 690, 1230, 700);
-            c.lineTo(1230, 840);
-            c.bezierCurveTo(1100, 845, 980, 835, 860, 800);
-            c.closePath();
-        }, F.jord);
-        [[930, 770, 950, 762], [1000, 740, 1030, 734], [1120, 760, 1150, 756], [1060, 800, 1090, 796]].forEach(s => {
-            linje(ctx, c => { c.moveTo(s[0], s[1]); c.lineTo(s[2], s[3]); }, 3);
-        });
-
-        // Svängkrans och larvband med ram, drivhjul, spännhjul och rullar
-        form(ctx, c => rr(c, 330, 640, 320, 34, 6), F.morkstal);
-        form(ctx, c => rr(c, 170, 668, 570, 117, 58), F.dack);
-        for (let x = 236; x <= 676; x += 28) {     // bandplattor
-            linje(ctx, c => { c.moveTo(x, 668); c.lineTo(x, 679); }, 3);
-            linje(ctx, c => { c.moveTo(x, 785); c.lineTo(x, 774); }, 3);
-        }
-        form(ctx, c => rr(c, 240, 692, 430, 70, 30), F.morkstal);
-        [[227, 'driv'], [683, 'spann']].forEach(([x]) => {
-            form(ctx, c => cirkel(c, x, 727, 44), F.stal);
-            linje(ctx, c => c.arc(x, 727, 30, 0.2 * Math.PI, 1.8 * Math.PI), 3);
-            prick(ctx, x, 727, 8);
-        });
-        [320, 395, 470, 545, 610].forEach(x => prick(ctx, x, 750, 11));
-        prick(ctx, 455, 702, 8);
-
-        // Motvikt och motorhuv med avgasrör, galler och ledstång
-        form(ctx, c => stav(c, 472, 510, 472, 462, 16), F.stal);
-        form(ctx, c => {
-            c.moveTo(345, 500);
-            c.lineTo(215, 500);
-            c.bezierCurveTo(182, 500, 165, 522, 165, 552);
-            c.lineTo(165, 640);
-            c.bezierCurveTo(165, 652, 172, 657, 186, 657);
-            c.lineTo(345, 657);
-            c.closePath();
-        }, F.gul);
-        form(ctx, c => rmangel(c, [[332, 506], [588, 506], [590, 657], [332, 657]], 8), F.gul);
-        [540, 562, 584].forEach(y => linje(ctx, c => { c.moveTo(390, y); c.lineTo(520, y); }, 3));
-        linje(ctx, c => { c.moveTo(362, 506); c.lineTo(362, 484); c.lineTo(530, 484); }, 4);
-        linje(ctx, c => { c.moveTo(200, 530); c.quadraticCurveTo(186, 560, 190, 610); }, 3);
-
-        // Sticka (bakom bommen vid armbågen)
-        const sticka = [[1032, 205], [1060, 320], [1090, 445], [1115, 560]];
-        form(ctx, c => band(c, sticka, 60, 44, 8), F.gul);
-        linje(ctx, c => { c.moveTo(1050, 268); c.lineTo(1095, 470); }, 3);
-
-        // Bom
-        const bom = [[745, 612], [790, 420], [880, 290], [1036, 236]];
-        form(ctx, c => band(c, bom, 78, 62, 26), F.gul);
-        const s0 = bez(bom, 0.25), s1 = bez(bom, 0.85);
-        linje(ctx, c => {               // svetsfog längs bommen (fria ändar)
-            c.moveTo(s0[0] + 14, s0[1] + 2);
-            c.quadraticCurveTo(870, 330, s1[0], s1[1] + 8);
-        }, 3);
-        prick(ctx, 1036, 236, 10);
-
-        // Stickcylinder ovanpå bommen
-        form(ctx, c => stav(c, 960, 230, 1030, 196, 13), F.ljusstal);
-        form(ctx, c => stav(c, 892, 272, 966, 228, 26), F.morkstal);
-
-        // Skopa från sidan: rak överplatta mellan lederna, rundad rygg,
-        // bottenplatta fram till skäret och tänder som pekar framåt-nedåt.
-        // Ungefär lika djup som hög, som en riktig skopa.
-        const skar = [1056, 730], hal = [1156, 714];
-        form(ctx, c => {
-            c.moveTo(1088, 550);
-            c.lineTo(1164, 556);
-            c.bezierCurveTo(1198, 590, 1198, 676, hal[0], hal[1]);
-            c.lineTo(skar[0], skar[1]);
-            c.bezierCurveTo(1064, 680, 1076, 610, 1088, 550);
-            c.closePath();
-            // Tänder längs skäret (medurs, som resten av formen)
-            [[1056, 730], [1082, 726], [1108, 722]].forEach(([x, y]) => {
-                mangel(c, [[x, y - 4], [x + 18, y - 7], [x + 6, y + 20]]);
-            });
-        }, F.gul);
-        // Sidoplåtens förstärkning, slitskena och kant vid öppningen (fria ändar)
-        linje(ctx, c => { c.moveTo(1160, 580); c.bezierCurveTo(1182, 615, 1180, 670, 1150, 698); }, 3);
-        linje(ctx, c => { c.moveTo(1140, 704); c.lineTo(1078, 713); }, 3);
-        linje(ctx, c => { c.moveTo(1094, 568); c.bezierCurveTo(1086, 610, 1078, 660, 1074, 700); }, 3);
-        prick(ctx, 1115, 560, 9);
-
-        // Skopcylinder och länk längs stickan
-        form(ctx, c => stav(c, 1094, 400, 1122, 512, 12), F.ljusstal);
-        form(ctx, c => stav(c, 1064, 262, 1096, 404, 24), F.morkstal);
-        form(ctx, c => stav(c, 1122, 512, 1146, 566, 14), F.morkstal);
-        prick(ctx, 1122, 512, 6);
-
-        // Bomcylinder (framför bommen, nedre änden bakom hytten)
-        form(ctx, c => stav(c, 792, 516, 842, 414, 16), F.ljusstal);
-        form(ctx, c => stav(c, 730, 640, 796, 510, 30), F.morkstal);
-        prick(ctx, 842, 414, 6);
-
-        // Varningsljus, hytt, rutor och förarstol
-        tunnForm(ctx, c => rr(c, 626, 400, 26, 20, 7), F.sol, 4);
-        form(ctx, c => rmangel(c, [[585, 415], [735, 415], [765, 500], [768, 657], [585, 657]], 14), F.gul);
-        form(ctx, c => rmangel(c, [[600, 432], [720, 432], [746, 500], [748, 598], [600, 598]], 8), F.glas);
-        linje(ctx, c => { c.moveTo(662, 432); c.lineTo(664, 598); }, 8);   // dörrstolpe
-        linje(ctx, c => {
-            c.moveTo(614, 588); c.lineTo(616, 520);
-            c.quadraticCurveTo(618, 506, 632, 508); c.lineTo(636, 560); c.lineTo(652, 562);
-        }, 3);
-        linje(ctx, c => { c.moveTo(704, 622); c.lineTo(730, 622); }, 4);   // handtag
-    }
-
-    // Lugn bakgrund för flygplanet, i finare målarboksstil: tunna linjer,
+    // Lugn bakgrund för helikoptern, i finare målarboksstil: tunna linjer,
     // två kullar långt ner, några små träd, moln och en sol utan ansikte.
     function luftBakgrund(ctx, molnLista) {
         const bortre = c => {
@@ -712,103 +462,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sol(ctx, 1095, 100);
         molnLista.forEach(m => moln(ctx, m[0], m[1], m[2]));
-    }
-
-    // Flygplan (ungefär en Airbus A330) från sidan, på väg uppåt åt höger.
-    // Lite verkligare stil: tunnare kant och fler, mindre ytor (fönster,
-    // dörrar, motorns delar). Ritat i ett eget koordinatsystem där kroppen
-    // går från x = 0 (stjärten) till x = 1000 (nosen), mittlinjen y = 0.
-    function ritaFlygplan(ctx) {
-        stilSatt(ctx);
-        kant = 4;
-        luftBakgrund(ctx, [[650, 140, 0.9], [1040, 600, 0.75], [150, 600, 0.65]]);
-        kant = 5;
-
-        ctx.save();
-        ctx.translate(95, 360);
-        ctx.rotate(-0.06);
-
-        // Bortre vingen (bakom kroppen) med winglet
-        form(ctx, c => {
-            mangel(c, [[410, -40], [300, -165], [345, -172], [580, -40]]);
-            mangel(c, [[300, -166], [310, -208], [328, -210], [345, -172]]);
-        }, F.vinge);
-
-        // Kroppen
-        const nosUnder = [[1000, 0], [1008, 20], [975, 46], [920, 48]];
-        const stjartUnder = [[330, 48], [200, 48], [70, 20], [6, -2]];
-        const kropp = c => {
-            c.moveTo(0, -14);
-            c.bezierCurveTo(60, -30, 140, -46, 220, -48);
-            c.lineTo(860, -48);
-            c.bezierCurveTo(930, -48, 985, -30, 1000, 0);
-            c.bezierCurveTo(1008, 20, 975, 46, 920, 48);
-            c.lineTo(330, 48);
-            c.bezierCurveTo(200, 48, 70, 20, 6, -2);
-            c.closePath();
-        };
-        form(ctx, kropp, F.flygkropp);
-        // Gräns mot den blå buken (når kroppens kant i båda ändar)
-        const b0 = bez(nosUnder, 0.35), b1 = bez(stjartUnder, 0.55);
-        const bukLinje = c => {
-            c.moveTo(b0[0], b0[1]);
-            c.bezierCurveTo(960, 26, 920, 26, 880, 26);
-            c.lineTo(300, 26);
-            c.bezierCurveTo(220, 26, 170, 27, b1[0], b1[1]);
-        };
-        if (fargLage) {     // buken: allt under linjen, innanför kroppen
-            ctx.save();
-            ctx.beginPath();
-            kropp(ctx);
-            ctx.clip();
-            ctx.beginPath();
-            bukLinje(ctx);
-            ctx.lineTo(-100, 200);
-            ctx.lineTo(1100, 200);
-            ctx.closePath();
-            ctx.fillStyle = F.buk;
-            ctx.fill();
-            ctx.restore();
-        }
-        linje(ctx, bukLinje, 4);
-        // Nosens kon (öppen båge) och stjärtkonen
-        linje(ctx, c => { c.moveTo(986, -16); c.quadraticCurveTo(978, 2, 988, 18); }, 3);
-
-        // Fönsterrad och dörrar
-        const dorrar = [268, 470, 700, 868];
-        dorrar.forEach(x => linje(ctx, c => rr(c, x - 13, -38, 26, 50, 7), 3));
-        for (let x = 296; x <= 846; x += 23) {
-            if (dorrar.some(d => Math.abs(d - x) < 26)) continue;
-            tunnForm(ctx, c => rr(c, x - 5, -24, 11, 16, 5), F.ruta, 3);
-        }
-        // Cockpitfönster
-        tunnForm(ctx, c => mangel(c, [[900, -30], [928, -30], [934, -16], [900, -16]]), F.ruta, 3);
-        tunnForm(ctx, c => mangel(c, [[938, -28], [950, -24], [958, -14], [938, -14]]), F.ruta, 3);
-
-        // Fena med en tunn linje för rodret
-        form(ctx, c => rmangel(c, [[20, -22], [30, -250], [95, -252], [240, -46]], 8), F.fena);
-        linje(ctx, c => { c.moveTo(48, -230); c.lineTo(42, -60); }, 3);
-        // Höjdroder (närmre)
-        form(ctx, c => rmangel(c, [[70, -8], [190, -2], [50, 74], [0, 72]], 6), F.vinge);
-        linje(ctx, c => { c.moveTo(62, 12); c.lineTo(22, 60); }, 3);
-
-        // Motorn hänger under närmre vingen. Vi ser planet lite ovanifrån,
-        // så vingen skymmer motorns bakre del; bara främre delen med
-        // luftintaget sticker fram framför vingens framkant.
-        form(ctx, c => rmangel(c, [[400, 92], [588, 84], [588, 158], [400, 150]], 26), F.buk);
-        linje(ctx, c => { c.moveTo(540, 96); c.lineTo(540, 146); }, 3);
-        form(ctx, c => ellips(c, 592, 121, 18, 38), F.ljusstal);
-        form(ctx, c => ellips(c, 596, 121, 9, 26), F.morkstal);
-
-        // Närmre vingen med klaffar och winglet
-        form(ctx, c => rmangel(c, [[380, 28], [610, 22], [275, 300], [222, 304], [318, 112]], 6), F.vinge);
-        linje(ctx, c => { c.moveTo(392, 50); c.lineTo(340, 118); c.lineTo(262, 268); }, 3);
-        [[366, 84], [318, 160], [290, 214]].forEach(([x, y]) => {
-            linje(ctx, c => { c.moveTo(x, y); c.lineTo(x - 22, y - 8); }, 3);
-        });
-        form(ctx, c => mangel(c, [[226, 300], [236, 252], [254, 250], [270, 299]]), F.fena);
-
-        ctx.restore();
     }
 
     // Däck och fälg i perspektiv (ellipser): klackar runt däcket, fälg,
@@ -1067,6 +720,13 @@ document.addEventListener('DOMContentLoaded', () => {
         ellips(ctx, x, y, rx, ry);
         ctx.fillStyle = farg;
         ctx.fill();
+    }
+
+    // Rena sidor med helt slutna ytor (t.ex. från Gemini): bara konturerna
+    // ritas, och varje yta får sin färg från en punkt i den (`farger` i
+    // PICTURES, fargaFranPunkter) — ingen färgkarta behövs.
+    function ritaFil(ctx, pic) {
+        if (!fargLage) ctx.drawImage(pic.img, 0, 0);
     }
 
     function ritaTraktorVerklig(ctx, pic) {
@@ -1620,14 +1280,72 @@ document.addEventListener('DOMContentLoaded', () => {
     // (x, y) = mitt under fötterna, s = skala, `ytor` = punkter i de ytor han
     // syns i (han ritas bara där, så det som ligger framför skymmer honom).
     const PICTURES = [
-        { namn: 'Traktor', rita: ritaTraktor,
-          clawd: { x: 372, y: 442, s: 0.36, ytor: [[372, 330]] } },        // i bakre rutan
+        { namn: 'Traktor', rita: ritaFil, bild: 'bilder/traktor.svg',
+          farger: {
+            [F.himmel]: [[0, 0]],
+            [F.sol]: [[209, 123], [912, 472], [932, 463]],
+            [F.moln]: [[873, 117], [1005, 140], [133, 175]],
+            [F.trad]: [[1094, 309], [102, 387]],
+            [F.stam]: [[1092, 371], [103, 476]],
+            [F.fjarrkulle]: [[983, 361], [1186, 348], [0, 458], [197, 375]],
+            [F.kulle2]: [[1199, 459]],
+            [F.akerkulle]: [[0, 631], [1199, 643]],
+            [F.mark]: [[603, 899]],
+            [F.rod]: [[440, 393], [583, 434], [665, 385], [665, 419], [665, 502], [733, 401], [821, 469], [967, 456], [864, 516], [455, 429], [241, 412], [331, 644], [870, 651]],
+            [F.morkrod]: [[737, 532], [668, 623]],
+            [F.fonster]: [[389, 326], [541, 305]],
+            [F.ljusstal]: [[404, 193]],
+            [F.gul]: [[570, 141], [391, 714], [905, 610]],
+            [F.falg]: [[371, 689], [876, 625]],
+            [F.dack]: [[217, 621], [786, 636]],
+            [F.stal]: [[688, 287], [582, 614], [594, 678]],
+            [F.morkstal]: [[553, 168], [689, 218], [484, 397], [225, 410], [991, 481], [1003, 467], [978, 473], [1011, 600], [804, 557], [592, 592], [589, 635], [586, 661], [680, 685], [355, 621], [355, 588], [322, 621], [388, 621], [355, 654], [877, 673]] },
+          clawd: { x: 386, y: 392, s: 0.34, ytor: [[386, 300]] } },       // i bakre rutan
         { namn: 'Traktor snett', rita: ritaTraktorSnett,
           clawd: { x: 1100, y: 360, s: 0.24, ytor: [[1100, 310]] } },     // bakom trädet
-        { namn: 'Grävmaskin', rita: ritaGravmaskin,
-          clawd: { x: 706, y: 604, s: 0.28, ytor: [[706, 520]] } },       // i hytten
-        { namn: 'Flygplan', rita: ritaFlygplan,
-          clawd: { x: 1040, y: 574, s: 0.34, ytor: [[1040, 500]] } },     // bakom molnet
+        { namn: 'Grävmaskin', rita: ritaFil, bild: 'bilder/gravmaskin.svg',
+          farger: {
+            [F.himmel]: [[505, 0], [890, 261]],
+            [F.sol]: [[207, 122]],
+            [F.moln]: [[873, 117], [1005, 140], [132, 175]],
+            [F.trad]: [[1095, 309], [101, 388]],
+            [F.stam]: [[1092, 376], [103, 479]],
+            [F.fjarrkulle]: [[0, 458], [201, 378], [298, 387], [1044, 379], [1186, 348]],
+            [F.kulle2]: [[859, 414], [935, 479], [1199, 459], [1010, 486]],
+            [F.akerkulle]: [[784, 580], [0, 631], [1199, 643], [1032, 573]],
+            [F.mark]: [[78, 899]],
+            [F.jord]: [[1019, 769]],
+            [F.gul]: [[323, 534], [312, 425], [224, 547], [409, 486], [564, 498], [699, 363], [755, 382], [944, 335], [992, 417], [190, 689], [679, 688], [389, 688], [496, 760]],
+            [F.morkgul]: [[291, 593], [479, 531], [709, 303], [981, 304], [1016, 610]],
+            [F.fonster]: [[411, 415], [522, 385]],
+            [F.morkstal]: [[372, 283], [257, 328], [196, 545], [477, 461], [515, 624], [292, 677], [435, 677], [577, 677], [219, 720], [650, 720], [363, 720], [506, 720], [975, 615], [978, 692], [993, 586], [1024, 623]],
+            [F.stal]: [[264, 370], [834, 258], [1008, 402], [214, 635], [266, 635], [321, 635], [376, 635], [428, 635], [481, 635], [537, 635], [589, 635], [644, 635], [151, 667], [704, 653], [133, 711], [736, 710], [150, 771], [713, 779], [213, 804], [265, 804], [319, 804], [373, 804], [427, 804], [480, 804], [534, 804], [587, 804], [641, 804]],
+            [F.ljusstal]: [[904, 233], [1032, 480], [896, 653], [878, 666], [861, 680]],
+            [F.dack]: [[147, 706]] },
+          clawd: { x: 535, y: 462, s: 0.3, ytor: [[535, 380]] } },        // i dörrens ruta
+        { namn: 'Flygplan', rita: ritaFil, bild: 'bilder/flygplan.svg',
+          farger: {
+            [F.himmel]: [[533, 0]],
+            [F.sol]: [[209, 123]],
+            [F.moln]: [[873, 117], [1005, 140], [132, 175]],
+            [F.trad]: [[1095, 309], [437, 364], [86, 395], [958, 370]],
+            [F.stam]: [[1092, 375], [437, 430], [960, 426], [128, 450], [103, 459]],
+            [F.fjarrkulle]: [[1187, 349]],
+            [F.kulle2]: [[859, 391], [0, 438], [333, 407]],
+            [F.akerkulle]: [[1195, 459]],
+            [F.mark]: [[77, 571], [1199, 593], [823, 634], [0, 899]],
+            [F.asfalt]: [[477, 730]],
+            [F.vit]: [[1142, 649], [0, 649], [821, 649], [0, 807], [0, 721], [268, 721], [752, 721], [1125, 721]],
+            [F.flygkropp]: [[1076, 551]],
+            [F.buk]: [[460, 594], [863, 597], [165, 432]],
+            [F.fena]: [[229, 405]],
+            [F.vinge]: [[531, 560], [151, 486], [306, 519], [322, 545]],
+            [F.ljusstal]: [[676, 556], [532, 598], [815, 586], [1140, 551], [721, 640], [583, 630], [336, 488], [978, 527], [686, 497]],
+            [F.stal]: [[639, 595], [776, 628], [636, 643], [591, 672], [984, 634], [987, 651], [977, 665], [989, 690], [566, 696], [616, 696]],
+            [F.morkstal]: [[793, 634], [614, 621], [614, 632], [606, 649]],
+            [F.dack]: [[979, 699], [561, 680], [612, 680]],
+            [F.ruta]: [[385, 506], [425, 507], [465, 506], [526, 506], [566, 506], [606, 506], [646, 505], [726, 506], [766, 506], [806, 507], [846, 505], [886, 505], [927, 504], [1057, 499], [1095, 499]] },
+          clawd: { x: 1005, y: 128, s: 0.3, ytor: [[1005, 60]] } },       // bakom molnet
         { namn: 'Helikopter', rita: ritaHelikopter,
           clawd: { x: 466, y: 470, s: 0.32, ytor: [[466, 380]] } },        // i dörrens ruta
         { namn: 'Traktor (verklig)', rita: ritaTraktorVerklig, bild: 'bilder/traktor-verklig.svg',
@@ -1784,6 +1502,54 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         if (nagonBlandad) stadaBlandade();
+    }
+
+    // Färger från punkter: `farger` = { färg: [[x, y], ...] }, varje punkt
+    // ligger inne i en yta som får den färgen. Ytor utan punkt (små celler)
+    // tar färgen från närmaste färgade yta: färgen sprids bredden-först
+    // från de färgade ytorna genom allt (linjer och ofärgade ytor), och
+    // varje ofärgad yta tar den färg som når flest av dess pixlar.
+    function fargaFranPunkter(farger) {
+        const W = PAPER_W, N = labels.length, n = regionSize.length;
+        regionColor = new Uint32Array(n);
+        regionBlandad = new Uint8Array(n);
+        Object.keys(farger).forEach(hex => {
+            const c = hexTillInt(hex);
+            farger[hex].forEach(([x, y]) => {
+                const l = labels[y * W + x];
+                if (l > 0) regionColor[l] = c;
+                else console.warn('Färgpunkt på en linje:', hex, x, y);
+            });
+        });
+        const nara = new Uint32Array(N);
+        const ko = new Int32Array(N);
+        let fram = 0, bak = 0;
+        for (let i = 0; i < N; i++) {
+            const l = labels[i];
+            if (l > 0 && regionColor[l]) { nara[i] = regionColor[l]; ko[bak++] = i; }
+        }
+        while (fram < bak) {
+            const i = ko[fram++], x = i % W;
+            const grannar = [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, i - W, i + W];
+            for (const j of grannar) {
+                if (j < 0 || j >= N || nara[j]) continue;
+                nara[j] = nara[i];
+                ko[bak++] = j;
+            }
+        }
+        const roster = new Map();
+        for (let i = 0; i < N; i++) {
+            const l = labels[i];
+            if (l <= 0 || regionColor[l]) continue;
+            let m = roster.get(l);
+            if (!m) roster.set(l, m = new Map());
+            m.set(nara[i], (m.get(nara[i]) || 0) + 1);
+        }
+        roster.forEach((m, l) => {
+            let bast = 0, flest = -1;
+            m.forEach((k, c) => { if (k > flest) { flest = k; bast = c; } });
+            regionColor[l] = bast;
+        });
     }
 
     // Blandade ytor (flera färger i kartan, t.ex. himmel + kullar + träd som
@@ -2122,7 +1888,8 @@ document.addEventListener('DOMContentLoaded', () => {
         rita(cCtx, pic);
         fargLage = false;
         labelRegions();
-        pickRegionColors();
+        if (pic.farger) fargaFranPunkter(pic.farger);
+        else pickRegionColors();
         fades.length = 0;
         const saved = pictureState[index];
         prepClawd(PICTURES[index].clawd, !!(saved && saved.clawd));

@@ -31,8 +31,9 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
   yta fylls i) poppar han upp med en liten studs, vinkar två gånger,
   blinkar och blir kvar. BÖRJA OM gömmer honom igen.
 - Bilder (i ordning): traktor från sidan, traktor snett framifrån (nära en
-  klassisk målarboksförlaga ägaren skickade), grävmaskin, flygplan (A330),
-  helikopter, samt sex bilder gjorda direkt från förlagor ägaren skickade
+  klassisk målarboksförlaga ägaren skickade), grävmaskin, flygplan på
+  banan (traktorn, grävmaskinen och flygplanet är Gemini-sidor i samma
+  stil, se "Rena sidor" nedan), helikopter, samt sex bilder gjorda direkt från förlagor ägaren skickade
   (AI-genererade målarbokssidor): verklig traktor och grävmaskin (den
   senare omritad för hand som rena vektorer, `ritaGravmaskinRen`), litet
   flygplan på gräset, helikopter på stigen, helikopter i luften och
@@ -69,7 +70,7 @@ pushas, annars fastnar plattan på gammal cache.
   Hjälpare: `form()` ritar en
   *sluten* form och raderar det som ligger bakom (destination-out), så
   överlappande delar skymmer varandra; `linje()` ritar ett löst streck;
-  `ellips()`, `trad()`, `grastuss()`, `sol()`, `moln()`, `hjul()`, `band()`;
+  `ellips()`, `trad()`, `grastuss()`, `sol()`, `moln()`;
   `stav()` (cylinder/stång) och `mangel()`
   (månghörning) lägger till banor i en `form()`. Ange banor **medurs** —
   blandade riktningar som överlappar i samma form kan ta ut varandra
@@ -136,6 +137,29 @@ pushas, annars fastnar plattan på gammal cache.
   bilden i full upplösning; titta på förstorade kvadranter. Gör det efter
   varje ändring av kartor eller färgningen.
 
+### Rena sidor (Gemini) med färg från punkter (`ritaFil`, `fargaFranPunkter`)
+Bästa vägen till nya bilder: be en bildgenerator (Gemini gav bäst
+resultat) om en svartvit målarbokssida i samma stil som de befintliga, med
+alla regler i första prompten (slutna ytor, jämna linjer, bultar som fyllda
+prickar, inga tunna dubbellinjer). Den är dålig på att ändra i efterhand.
+- `verktyg/linjer.py` med typ `'skarp'`: tröskar mitt i linjekanten efter
+  lätt brusreducering och sparar i full upplösning; `vektor.py` spårar där
+  och skalar ner banorna till 1200 px — mjuka kurvor och rätt linjebredd.
+  Jämför SVG:n med förlagan i förstorade kvadranter.
+- Ytorna är helt slutna, så ingen färgkarta behövs: PICTURES-posten har
+  `rita: ritaFil` och `farger: { [F.xxx]: [[x, y], ...] }` med en punkt
+  inne i varje yta. `fargaFranPunkter` ger varje yta färgen från sin punkt;
+  ytor utan punkt (små celler) tar färgen från närmaste färgade yta.
+  Punkt på en linje varnas i konsolen.
+- Ta fram punkterna ur appens egna ytor (`labels` efter laddning): numrera
+  dem, ta den inre punkt som ligger längst från kanten i varje yta och
+  titta på en numrerad, förstorad karta. Ge varje yta en färg.
+- Kullarna färgas i djupled, ljusast längst bort: `fjarrkulle`, `kulle2`,
+  `akerkulle`, `mark` (gräset längst fram). Rutor på fordon: `fonster` (lite
+  djupare än himlen). Glipor där bakgrunden syns mellan maskindelar får
+  bakgrundens färg (kullen/himlen bakom), smala remsor på maskinen
+  maskinens färg.
+
 ### Rita om en förlaga för hand (`ritaGravmaskinRen`)
 När en förlaga är för plottrig (blyertsskissen) ritas den om med
 `form()`/`linje()` i bildens koordinater: lägg förlagan i 1200×900 bredvid ett
@@ -152,14 +176,13 @@ Alla bilder är ritade i en finare målarboksstil: tunna jämna konturer
 riktiga mått — se kommentaren över varje `ritaXxx`), fler och mindre ytor
 (fönster, dörrar, motordelar) är OK nu när man målar över i stället för att
 trycka, sol utan ansikte och en lugn bakgrund med tunna linjer
-(`faltBakgrund` för fordonen, `luftBakgrund` för flygplanet). Hjälpare:
-`hjul()` (däck med klackar, fälg, nav), `hjulSnett()` (samma i perspektiv),
-`band()` (böjd bom/sticka längs en
-bezierkurva), `sol()`, `moln()`. Tänk på vad som skymmer vad (t.ex. motorn
-under flygplanets vinge: rita den före vingen så bara fronten syns).
+(`faltBakgrund` för fordonen, `luftBakgrund` för helikoptern). Hjälpare:
+`hjulSnett()` (däck i perspektiv), `sol()`, `moln()`. Tänk på vad som
+skymmer vad.
 
 ## Lägga till en ny bild
-1. Skriv `ritaXxx(ctx)` (se `ritaTraktor`/`ritaGravmaskin`; börja med
+Helst som en ren sida från en bildgenerator, se "Rena sidor" ovan. Annars:
+1. Skriv `ritaXxx(ctx)` (se `ritaTraktorSnett`/`ritaHelikopter`; börja med
    `stilSatt(ctx)`, `kant = 4`, bakgrunden och sedan `kant = 5`). Ge varje `form()` sin
    givna färg som tredje argument (lägg nya färger i `F`, lugna toner). Se
    **Bildstil** ovan. Detaljer (bultar, springor, galler, fogar) ritas som

@@ -1,6 +1,6 @@
 // Höj VERSION (v1 -> v2 osv.) varje gång du laddar upp nya filer,
 // så hämtas och cachas den nya versionen säkert.
-const VERSION = 'v17';
+const VERSION = 'v18';
 const CACHE = 'farga-' + VERSION;
 
 const ASSETS = [
@@ -11,6 +11,9 @@ const ASSETS = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
+  './bilder/traktor.svg',
+  './bilder/gravmaskin.svg',
+  './bilder/flygplan.svg',
   './bilder/traktor-verklig.svg',
   './bilder/flygplan-litet.svg',
   './bilder/helikopter-stig.svg',

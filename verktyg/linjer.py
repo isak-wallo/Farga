@@ -18,7 +18,9 @@ UT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '
 LINJE = (0x3a, 0x3a, 0x44)
 
 # namn: (typ, beskärning (x0, y0, x1, y1) i förlagan, himmel att lägga till ovanför i px)
-# typ 'ren' = ren linjeteckning, 'blyerts' = blyertsskiss på papper.
+# typ 'ren' = ren linjeteckning, 'blyerts' = blyertsskiss på papper,
+# 'skarp' = ren och skarp linjeteckning i hög upplösning: sparas i full
+# upplösning (vektor.py skalar ner banorna) så kurvorna blir mjuka.
 # Beskärningen ska vara ungefär 4:3 efter att himlen lagts till.
 BILDER = {
     'traktor-verklig':      ('ren', (80, 190, 944, 838), 0),
@@ -28,6 +30,10 @@ BILDER = {
     'helikopter-stig':      ('ren', (0, 330, 784, 918), 0),
     'helikopter-luft':      ('ren', (44, 26, 1211, 642), 266),
     'flygplan-falt':        ('ren', (0, 516, 1024, 1022), 307),
+    # Gemini-sidor (2000x1493) i samma stil: traktor, grävmaskin, flygplan
+    'traktor':              ('skarp', (0, 0, 2000, 1493), 0),
+    'gravmaskin':           ('skarp', (0, 0, 2000, 1493), 0),
+    'flygplan':             ('skarp', (0, 0, 2000, 1493), 0),
 }
 
 
@@ -47,6 +53,14 @@ def ren(f):
     alpha = np.clip((215 - g) * 2.6, 0, 255)
     alpha[~smaborta(alpha > 200, 12) & (alpha > 200)] = 0
     return alpha
+
+
+def skarp(f):
+    """Skarp linjeteckning (t.ex. Gemini): jämna ut JPEG-bruset lite och
+    tröskla mitt i kanten, så linjerna får sin verkliga bredd."""
+    g = nd.gaussian_filter(gray(f), 1.0)
+    mask = smaborta(g < 140, 30)
+    return mask * 255.0
 
 
 def blyerts(f):
@@ -69,9 +83,22 @@ def blyerts(f):
     return alpha
 
 
-def spara(alpha, crop, himmel, namn):
+def spara(alpha, crop, himmel, namn, hog=False):
     x0, y0, x1, y1 = crop
     a = Image.fromarray(alpha.astype(np.uint8)).crop(crop)
+    if hog:
+        # full upplösning, bara bredden 4:3 mot 1200x900 (vektor.py skalar)
+        b = x1 - x0
+        duk = Image.new('L', (b, round(b * 0.75)), 0)
+        duk.paste(a, (0, round(himmel * b / 1200)))
+        rgba = np.zeros((duk.height, b, 4), np.uint8)
+        rgba[..., 0], rgba[..., 1], rgba[..., 2] = LINJE
+        rgba[..., 3] = np.asarray(duk)
+        Image.fromarray(rgba).save(UT + namn + '.png', optimize=True)
+        alpha_liten = Image.fromarray(rgba).resize((1200, 900), Image.LANCZOS)
+        rgba = np.asarray(alpha_liten)
+        rutnat(rgba, namn)
+        return
     s = 1200 / (x1 - x0)
     h = round((y1 - y0) * s)
     a = a.resize((1200, h), Image.LANCZOS)
@@ -84,7 +111,11 @@ def spara(alpha, crop, himmel, namn):
     rgba[..., 0], rgba[..., 1], rgba[..., 2] = LINJE
     rgba[..., 3] = a
     Image.fromarray(rgba).save(UT + namn + '.png', optimize=True)
-    # förhandsvisning med rutnät
+    rutnat(rgba, namn)
+
+
+def rutnat(rgba, namn):
+    """Förhandsvisning med rutnät (1200x900) att rita färgkartan efter."""
     v = Image.new('RGB', (1200, 900), 'white')
     v.paste(Image.fromarray(rgba), (0, 0), Image.fromarray(rgba))
     d = ImageDraw.Draw(v)
@@ -100,6 +131,6 @@ def spara(alpha, crop, himmel, namn):
 for arg in sys.argv[1:]:
     namn, fil = arg.split('=', 1)
     typ, crop, himmel = BILDER[namn]
-    alpha = blyerts(fil) if typ == 'blyerts' else ren(fil)
-    spara(alpha, crop, himmel, namn)
+    alpha = {'blyerts': blyerts, 'skarp': skarp}.get(typ, ren)(fil)
+    spara(alpha, crop, himmel, namn, hog=(typ == 'skarp'))
     print('skrev', namn)
