@@ -30,10 +30,11 @@ BILDER = {
     'helikopter-stig':      ('ren', (0, 330, 784, 918), 0),
     'helikopter-luft':      ('ren', (44, 26, 1211, 642), 266),
     'flygplan-falt':        ('ren', (0, 516, 1024, 1022), 307),
-    # Gemini-sidor (2000x1493) i samma stil: traktor, grävmaskin, flygplan
+    # Gemini-sidor i samma stil: traktor, grävmaskin, flygplan, helikopter
     'traktor':              ('skarp', (0, 0, 2000, 1493), 0),
     'gravmaskin':           ('skarp', (0, 0, 2000, 1493), 0),
     'flygplan':             ('skarp', (0, 0, 2000, 1493), 0),
+    'helikopter':           ('skarp', (0, 0, 1200, 896), 0),
 }
 
 # Tillagda streck (i 1200x900-koordinater) som stänger glapp i förlagan,
