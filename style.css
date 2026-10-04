@@ -84,13 +84,13 @@ body {
     height: 100%;
 }
 
-/* Panel: föregående, nästa och BÖRJA OM.
+/* Panel: föregående, nästa, SPARA och BÖRJA OM.
    Liggande: en smal kolumn till höger (uppifrån och ned).
    Stående: en rad längst ned (vänster till höger). */
 #button-container {
     flex: 0 0 14%;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     grid-template-rows: 1fr;
     background-color: #dcecf8;
     padding: 10px;
@@ -99,7 +99,7 @@ body {
 @media (orientation: landscape) {
     #button-container {
         grid-template-columns: 1fr;
-        grid-template-rows: repeat(3, 1fr);
+        grid-template-rows: repeat(4, 1fr);
     }
 }
 
@@ -164,5 +164,9 @@ body {
 
 #restart-btn.confirm {
     background-color: #f2b8b0;
+    color: #ffffff;
+}
+#save-btn.sparad {
+    background-color: #b8dba4;
     color: #ffffff;
 }

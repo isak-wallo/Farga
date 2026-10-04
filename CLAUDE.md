@@ -16,10 +16,13 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
   bildpixlar). Penseln "målar fram" färgen på de ytor den passerar. När
   `FYLL_ANDEL` (80 %) av en yta är målad fylls resten i av sig själv och
   tonas mjukt fram (`FADE_MS`).
-- Panelen har bara tre knappar, till höger i liggande läge (en rad nederst
+- Panelen har fyra knappar, till höger i liggande läge (en rad nederst
   i stående): **◀** föregående bild, **▶** nästa bild (agerar direkt på
-  `touchstart` med `stopPropagation`) och **BÖRJA OM** (håll 1 s → SÄKER?,
-  håll 1 s igen → bilden töms; samma spärr som Kluddas RENSA).
+  `touchstart` med `stopPropagation`), **SPARA** (håll 1 s → bilden laddas
+  ner som PNG 1200×900 till plattans Hämtade filer, `sparaBild`; knappen
+  visar SPARAD ✓ en stund) och **BÖRJA OM** (håll 1 s → SÄKER?, håll 1 s
+  igen → bilden töms; samma spärr som Kluddas RENSA). Håll-logiken
+  (`startHold`/`holdEnd`) delas av SPARA och BÖRJA OM.
 - Varje bild minns det man målat så länge appen är öppen
   (`pictureState`/`loadPicture`).
 - **Clawd** (den lilla orange kompisen från https://github.com/isak-wallo/clawd)
@@ -129,7 +132,9 @@ När en förlaga är för plottrig (blyertsskissen) ritas den om med
 rutnät, rita bara de yttre konturerna och de viktigaste delarna (rutor,
 hjul, cylindrar), hoppa över skuggning, reflexer och småstreck. Kontrollera
 genom att lägga de nya linjerna över förlagan (röda på grå) — de ska följa
-förlagans konturer.
+förlagans konturer. Mät upp delarna i förstorade utsnitt med tätt rutnät
+(10 px) och tänk på vad som ligger framför vad (bommens rundade spets ligger
+framför stickan, så stickan ritas först).
 
 ## Bildstil
 Alla bilder är ritade i en finare målarboksstil: tunna jämna konturer

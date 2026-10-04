@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // aldrig kan råka använda dem före deklarationen.
     const startOverlay = document.getElementById('start-overlay');
     const restartBtn = document.getElementById('restart-btn');
+    const saveBtn = document.getElementById('save-btn');
     const app = document.getElementById('app');
 
     // Bilden är 1200x900 (landskap). Lager:
@@ -42,22 +43,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let clearState = 0;
     let clearTimer = null;
     let viewRect = { left: 0, top: 0 };
-    // --- Håll-in-logik för BÖRJA OM ---
-    // Man måste hålla fingret intryckt i HOLD_MS (ca 1 s). Första hållningen
-    // visar SÄKER?, andra hållningen tömmer bilden. En kort tryckning gör
-    // inget — så att ett barn inte råkar sudda allt av misstag.
+    // --- Håll-in-logik för BÖRJA OM och SPARA ---
+    // Man måste hålla fingret intryckt i HOLD_MS (ca 1 s). BÖRJA OM: första
+    // hållningen visar SÄKER?, andra hållningen tömmer bilden. SPARA: en
+    // hållning sparar bilden. En kort tryckning gör inget — så att ett barn
+    // inte råkar sudda allt (eller fylla plattan med bilder) av misstag.
     const HOLD_MS = 1000;
     // Synka håll-animationens längd i CSS med HOLD_MS (--hold-ms används
     // av .sys-btn.holding i style.css).
     document.documentElement.style.setProperty('--hold-ms', HOLD_MS + 'ms');
     let holdTimer = null;
 
-    function startHold() {
+    function startHold(btn) {
         if (holdTimer) clearTimeout(holdTimer);
         holdTimer = setTimeout(() => {
             holdTimer = null;
-            restartBtn.classList.remove('holding');
-            handleClear();
+            btn.classList.remove('holding');
+            if (btn === saveBtn) sparaBild();
+            else handleClear();
         }, HOLD_MS);
     }
 
@@ -1379,10 +1382,12 @@ document.addEventListener('DOMContentLoaded', () => {
             c.closePath();
         }, F.stam);
         form(ctx, c => {
-            cirkel(c, 1000, 120, 62);
-            cirkel(c, 1085, 80, 78);
-            cirkel(c, 1165, 130, 60);
-            cirkel(c, 1090, 165, 50);
+            cirkel(c, 880, 80, 55);
+            cirkel(c, 965, 58, 66);
+            cirkel(c, 1060, 62, 72);
+            cirkel(c, 1150, 100, 56);
+            cirkel(c, 1010, 120, 48);
+            cirkel(c, 1095, 150, 44);
         }, F.trad);
         // Gräs och jordhög under skopan
         [[40, 800, 0.9], [1120, 690, 1.1], [1150, 860, 1], [560, 870, 0.8]].forEach(g => grastuss(ctx, g[0], g[1], g[2]));
@@ -1418,92 +1423,124 @@ document.addEventListener('DOMContentLoaded', () => {
         form(ctx, c => rmangel(c, [[770, 745], [998, 714], [1002, 792], [778, 828]], 8), F.stal);
         tunnForm(ctx, c => rr(c, 870, 762, 30, 14, 4), F.morkstal, 3);
 
-        // Motorrum till vänster om hytten, med lampa
-        form(ctx, c => rmangel(c, [[496, 472], [600, 440], [662, 446], [662, 622], [500, 616]], 30), F.gul);
-        tunnForm(ctx, c => rr(c, 512, 560, 54, 24, 6), F.glas, 3);
+        // Motorrum till vänster om hytten (högt rundat skal), med lampa
+        form(ctx, c => rmangel(c, [[490, 600], [490, 470], [504, 420], [540, 396], [662, 394],
+            [662, 622], [494, 616]], 22), F.gul);
+        linje(ctx, c => { c.moveTo(492, 522); c.lineTo(566, 518); }, 3);
+        tunnForm(ctx, c => rr(c, 522, 548, 24, 18, 4), F.glas, 3);
+        tunnForm(ctx, c => rr(c, 503, 588, 46, 13, 5), F.morkstal, 3);
         // Däck under hytten och motorhuven till höger
         form(ctx, c => rmangel(c, [[640, 598], [1032, 588], [1032, 626], [1000, 642], [800, 656], [650, 642]], 14), F.gul);
         form(ctx, c => rmangel(c, [[946, 416], [988, 412], [1012, 440], [1032, 472], [1032, 598], [946, 604]], 20), F.gul);
         [468, 488, 508].forEach(y => tunnForm(ctx, c => rr(c, 966, y, 40, 10, 5), F.morkstal, 3));
 
-        // Bom (böjd), bakom cylindrarna och hytten
+        // Sticka (bakom bommens rundade spets). Smalnar av nedåt; vänster
+        // sida har ett fäste för skopcylindern, och toppen en sned platta.
         form(ctx, c => {
-            c.moveTo(395, 138);
-            c.bezierCurveTo(480, 158, 600, 228, 638, 290);
-            c.bezierCurveTo(662, 332, 656, 400, 652, 600);
-            c.lineTo(598, 600);
-            c.bezierCurveTo(598, 420, 590, 350, 556, 306);
-            c.bezierCurveTo(500, 256, 440, 222, 395, 202);
+            c.moveTo(297, 72);
+            c.bezierCurveTo(300, 50, 312, 28, 345, 16);
+            c.lineTo(385, 13);
+            c.bezierCurveTo(396, 14, 402, 24, 402, 40);
+            c.lineTo(398, 250);
+            c.lineTo(383, 300);
+            c.lineTo(345, 495);
+            c.lineTo(342, 545);
+            c.lineTo(276, 545);
+            c.lineTo(276, 300);
+            c.lineTo(288, 214);
+            c.bezierCurveTo(268, 210, 264, 176, 292, 166);
             c.closePath();
-            cirkel(c, 405, 170, 33);
         }, F.gul);
-        // Bomcylindrar (bortre först)
-        form(ctx, c => stav(c, 552, 318, 557, 412, 16), F.ljusstal);
-        form(ctx, c => stav(c, 557, 405, 590, 606, 30), F.morkstal);
-        form(ctx, c => stav(c, 612, 272, 618, 400, 18), F.ljusstal);
-        form(ctx, c => stav(c, 618, 394, 638, 606, 34), F.morkstal);
-        prick(ctx, 612, 272, 8);
-        prick(ctx, 552, 318, 7);
+        linje(ctx, c => { c.moveTo(298, 84); c.lineTo(342, 77); c.lineTo(396, 30); }, 3);   // toppens platta
+        linje(ctx, c => { c.moveTo(301, 226); c.lineTo(300, 480); }, 3);                    // stickans kant
+        prick(ctx, 317, 180, 7);
+        // Skopcylinder längs stickans vänstra sida (cylinder + kolvstång)
+        form(ctx, c => stav(c, 278, 205, 258, 392, 26), F.morkstal);
+        linje(ctx, c => { c.moveTo(245, 352); c.lineTo(271, 356); }, 3);
+        form(ctx, c => stav(c, 256, 390, 228, 494, 14), F.ljusstal);
 
-        // Sticka med huvud uppe vid armbågen
+        // Bom (böjd) med rundad spets som ligger framför stickan
         form(ctx, c => {
-            c.moveTo(300, 88);
-            c.lineTo(322, 40);
-            c.bezierCurveTo(332, 24, 350, 18, 388, 18);
-            c.bezierCurveTo(400, 20, 404, 28, 402, 40);
-            c.lineTo(398, 130);
-            c.lineTo(386, 252);
-            c.lineTo(352, 500);
-            c.lineTo(346, 598);
-            c.lineTo(296, 598);
-            c.lineTo(290, 500);
-            c.lineTo(288, 300);
+            c.moveTo(378, 122);
+            c.bezierCurveTo(420, 120, 480, 140, 560, 175);
+            c.bezierCurveTo(600, 190, 630, 225, 642, 262);
+            c.bezierCurveTo(656, 300, 660, 340, 658, 400);
+            c.lineTo(656, 600);
+            c.lineTo(600, 600);
+            c.lineTo(598, 420);
+            c.bezierCurveTo(594, 360, 576, 312, 545, 280);
+            c.bezierCurveTo(510, 252, 460, 220, 400, 188);
+            c.bezierCurveTo(388, 196, 384, 220, 380, 240);
+            c.bezierCurveTo(376, 256, 360, 262, 348, 256);
+            c.bezierCurveTo(330, 246, 326, 220, 327, 190);
+            c.bezierCurveTo(327, 160, 340, 128, 378, 122);
             c.closePath();
         }, F.gul);
-        prick(ctx, 405, 170, 9);
-        prick(ctx, 385, 36, 8);
+        const s0 = [430, 150], s1 = [592, 240];
+        linje(ctx, c => { c.moveTo(s0[0], s0[1] + 12); c.bezierCurveTo(500, 178, 560, 210, s1[0], s1[1]); }, 3);
+        prick(ctx, 410, 155, 9);
+        prick(ctx, 352, 236, 6);
         // Stickcylinder ovanpå bommen (kolvstång + cylinder)
-        form(ctx, c => stav(c, 390, 40, 470, 112, 18), F.ljusstal);
-        form(ctx, c => stav(c, 460, 102, 578, 204, 34), F.morkstal);
-        prick(ctx, 578, 204, 7);
-        // Skopcylinder längs stickans vänstra sida
-        form(ctx, c => stav(c, 304, 206, 286, 372, 26), F.morkstal);
-        form(ctx, c => stav(c, 284, 368, 262, 498, 16), F.ljusstal);
+        form(ctx, c => stav(c, 386, 36, 466, 106, 16), F.ljusstal);
+        form(ctx, c => stav(c, 462, 108, 586, 202, 32), F.morkstal);
+        prick(ctx, 384, 35, 7);
+        prick(ctx, 582, 201, 7);
+        // Bomcylindrar (bortre först): kolvstång, krage och cylinder
+        form(ctx, c => stav(c, 553, 320, 560, 412, 16), F.ljusstal);
+        form(ctx, c => stav(c, 561, 406, 578, 606, 30), F.morkstal);
+        linje(ctx, c => { c.moveTo(546, 428); c.lineTo(576, 426); }, 3);
+        form(ctx, c => stav(c, 612, 272, 616, 404, 18), F.ljusstal);
+        form(ctx, c => stav(c, 628, 400, 632, 606, 32), F.morkstal);
+        linje(ctx, c => { c.moveTo(612, 428); c.lineTo(644, 428); }, 3);
+        prick(ctx, 612, 272, 7);
+        prick(ctx, 553, 320, 6);
 
-        // Skopa med tänder
+        // Skopa med öron, sidoplåt, slitskena och tänder
+        const skar0 = [225, 812], skar1 = [400, 855];
         form(ctx, c => {
-            c.moveTo(200, 600);
-            c.lineTo(380, 600);
-            c.lineTo(392, 640);
-            c.lineTo(396, 780);
-            c.lineTo(418, 858);
-            c.lineTo(330, 822);
-            c.lineTo(232, 792);
-            c.bezierCurveTo(150, 770, 86, 700, 94, 650);
-            c.bezierCurveTo(104, 614, 150, 600, 200, 600);
+            c.moveTo(180, 600);
+            c.lineTo(186, 574);
+            c.lineTo(214, 570);
+            c.lineTo(222, 600);
+            c.lineTo(350, 598);
+            c.lineTo(368, 622);
+            c.lineTo(370, 770);
+            c.lineTo(skar1[0], skar1[1]);
+            c.lineTo(skar0[0], skar0[1]);
+            c.bezierCurveTo(175, 795, 128, 752, 123, 692);
+            c.bezierCurveTo(120, 640, 146, 606, 180, 600);
             c.closePath();
-            [[250, 795], [292, 808], [334, 822], [376, 838]].forEach(([x, y]) => {
-                mangel(c, [[x, y], [x + 24, y + 8], [x + 16, y + 28]]);
+            [0.1, 0.32, 0.54, 0.76].forEach(t => {
+                const x = skar0[0] + (skar1[0] - skar0[0]) * t, y = skar0[1] + (skar1[1] - skar0[1]) * t;
+                mangel(c, [[x, y], [x + 24, y + 6], [x + 9, y + 26]]);
             });
         }, F.gul);
-        linje(ctx, c => { c.moveTo(332, 600); c.bezierCurveTo(272, 650, 270, 740, 300, 812); }, 4);
+        linje(ctx, c => { c.moveTo(318, 599); c.bezierCurveTo(264, 660, 252, 772, 305, 830); }, 4);   // sidoplåt
+        linje(ctx, c => { c.moveTo(150, 668); c.quadraticCurveTo(140, 712, 160, 752); }, 3);           // ribbor
+        linje(ctx, c => { c.moveTo(208, 650); c.quadraticCurveTo(196, 712, 214, 778); }, 3);
+        prick(ctx, 380, 800, 4);
+        prick(ctx, 386, 822, 4);
         // Länkar mellan sticka och skopa
-        form(ctx, c => rr(c, 240, 492, 110, 30, 15), F.gul);
-        form(ctx, c => stav(c, 336, 516, 330, 590, 30), F.gul);
-        form(ctx, c => stav(c, 276, 516, 268, 598, 24), F.gul);
-        [[256, 507], [336, 507], [330, 590], [268, 598]].forEach(([x, y]) => prick(ctx, x, y, 6));
+        form(ctx, c => mangel(c, [[222, 518], [262, 518], [258, 600], [216, 600]]), F.gul);
+        form(ctx, c => stav(c, 322, 578, 268, 594, 24), F.gul);
+        form(ctx, c => stav(c, 326, 512, 322, 580, 26), F.gul);
+        form(ctx, c => rr(c, 198, 486, 140, 34, 17), F.gul);
+        [[216, 503], [326, 506], [322, 579], [268, 594]].forEach(([x, y]) => prick(ctx, x, y, 6));
 
         // Hytt: kaross, tak, rutor, dörrfog och handtag
         form(ctx, c => rmangel(c, [[660, 300], [948, 296], [952, 592], [870, 616], [790, 622], [650, 602]], 12), F.gul);
-        tunnForm(ctx, c => rr(c, 680, 258, 26, 16, 5), F.sol, 3);
-        tunnForm(ctx, c => rr(c, 776, 254, 26, 16, 5), F.sol, 3);
-        form(ctx, c => rmangel(c, [[668, 270], [935, 262], [950, 282], [948, 304], [668, 308], [662, 288]], 10), F.ljusstal);
+        form(ctx, c => rmangel(c, [[668, 266], [935, 258], [950, 280], [948, 304], [668, 308], [660, 286]], 10), F.ljusstal);
+        tunnForm(ctx, c => rr(c, 676, 272, 26, 14, 5), F.sol, 3);
+        tunnForm(ctx, c => rr(c, 776, 268, 28, 14, 5), F.sol, 3);
         form(ctx, c => rmangel(c, [[670, 322], [770, 316], [778, 500], [664, 500]], 12), F.glas);
         form(ctx, c => rmangel(c, [[664, 512], [776, 510], [778, 598], [662, 596]], 10), F.glas);
         form(ctx, c => rmangel(c, [[818, 308], [884, 308], [888, 466], [815, 466]], 14), F.glas);
         form(ctx, c => rmangel(c, [[814, 492], [880, 490], [884, 518], [868, 560], [816, 574]], 12), F.glas);
         form(ctx, c => rmangel(c, [[905, 320], [936, 322], [936, 480], [905, 490]], 12), F.glas);
         linje(ctx, c => { c.moveTo(896, 304); c.lineTo(898, 612); }, 4);
+        linje(ctx, c => { c.moveTo(792, 306); c.lineTo(796, 620); }, 4);                  // hörnstolpe
+        tunnForm(ctx, c => rr(c, 830, 358, 42, 34, 12), F.morkstal, 3);                    // stol (nackstöd)
+        tunnForm(ctx, c => rmangel(c, [[822, 400], [878, 398], [882, 466], [818, 466]], 12), F.morkstal, 3);
         linje(ctx, c => { c.moveTo(888, 528); c.lineTo(888, 556); }, 4);
         tunnForm(ctx, c => rr(c, 812, 574, 16, 18, 4), F.morkstal, 3);
     }
@@ -2049,7 +2086,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fingret är en pensel som målar fram ytornas givna färger (den kan inte
     // välja färg). När FYLL_ANDEL av en yta är målad fylls resten i av sig
     // själv och tonas mjukt fram (FADE_MS).
-    const PENSEL = 34;         // penselns radie i bildpixlar
+    const PENSEL = 31;         // penselns radie i bildpixlar
     const FYLL_ANDEL = 0.8;
     const FADE_MS = 700;
     const fades = [];          // { id, canvas, x, y, start }
@@ -2188,6 +2225,58 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < e.changedTouches.length; i++) fingers.delete(e.changedTouches[i].identifier);
     }
 
+    // --- SPARA ---
+    // Sparar bilden som den ser ut nu (det målade, Clawd om han är hittad,
+    // och konturerna) som en PNG i 1200x900. Laddas ner till plattans
+    // Hämtade filer (Downloads), där den syns i Galleri/Filer.
+    let sparaTimer = null;
+    function sparaBild() {
+        finishFades();
+        if (dirty) { fCtx.putImageData(fillImage, 0, 0); dirty = null; }
+        const c = document.createElement('canvas');
+        c.width = PAPER_W;
+        c.height = PAPER_H;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, PAPER_W, PAPER_H);
+        ctx.drawImage(fillCanvas, 0, 0);
+        if (clawd && clawd.hittad) {
+            const b = clawd.box, tctx = clawd.tmp.getContext('2d');
+            tctx.globalCompositeOperation = 'source-over';
+            tctx.clearRect(0, 0, b.w, b.h);
+            ritaClawd(tctx, clawd.x - b.x0, clawd.y - b.y0, clawd.s, 0, false);
+            tctx.globalCompositeOperation = 'destination-in';
+            tctx.drawImage(clawd.mask, 0, 0);
+            tctx.globalCompositeOperation = 'source-over';
+            ctx.drawImage(clawd.tmp, b.x0, b.y0);
+        }
+        ctx.drawImage(lineCanvas, 0, 0);
+        const d = new Date(), tv = n => String(n).padStart(2, '0');
+        const namn = 'farga-' + PICTURES[currentPicture].namn.toLowerCase()
+            .replace(/[åä]/g, 'a').replace(/ö/g, 'o').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') +
+            '-' + d.getFullYear() + tv(d.getMonth() + 1) + tv(d.getDate()) + '-' +
+            tv(d.getHours()) + tv(d.getMinutes()) + tv(d.getSeconds()) + '.png';
+        c.toBlob(blob => {
+            if (!blob) return;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = namn;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+        }, 'image/png');
+        // Kvittens på knappen en stund
+        saveBtn.textContent = 'SPARAD ✓';
+        saveBtn.classList.add('sparad');
+        if (sparaTimer) clearTimeout(sparaTimer);
+        sparaTimer = setTimeout(() => {
+            saveBtn.textContent = 'SPARA';
+            saveBtn.classList.remove('sparad');
+        }, 2000);
+    }
+
     // BÖRJA OM — tvåstegs med hållning: första hållningen (1 s) visar
     // "SÄKER?" (5 s timeout / nollställs om man målar), andra hållningen
     // (1 s) tömmer bilden.
@@ -2267,47 +2356,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: false });
     });
 
-    // BÖRJA OM — håll in HOLD_MS (1 s) för att aktivera, två gånger (SÄKER?).
-    // Touchstart stopPropagates så den inte målar; mousedown för test på dator.
-    function holdStart() {
-        startHold();
-        restartBtn.classList.add('holding');
-    }
+    // BÖRJA OM (två hållningar, SÄKER?) och SPARA (en hållning) — håll in
+    // HOLD_MS (1 s). Touchstart stopPropagates så den inte målar; mousedown
+    // för test på dator.
     function holdEnd() {
         endHold();
         restartBtn.classList.remove('holding');
+        saveBtn.classList.remove('holding');
     }
 
-    restartBtn.addEventListener('touchstart', function(e) {
-        e.stopPropagation();
-        holdStart();
-        e.preventDefault();
-    }, { passive: false });
+    [restartBtn, saveBtn].forEach(btn => {
+        const holdStart = () => {
+            startHold(btn);
+            btn.classList.add('holding');
+        };
+        btn.addEventListener('touchstart', function(e) {
+            e.stopPropagation();
+            holdStart();
+            e.preventDefault();
+        }, { passive: false });
 
-    // Touch-hållning avbryts om fingret glider utanför knappen (samma som
-    // mouseleave för mus). Touch-event riktas alltid till elementet där
-    // touchen startade, så touchmove på knappen räcker för en bounds-check.
-    restartBtn.addEventListener('touchmove', function(e) {
-        const t = e.changedTouches[0];
-        const r = this.getBoundingClientRect();
-        if (t.clientX < r.left || t.clientX > r.right ||
-            t.clientY < r.top || t.clientY > r.bottom) {
-            holdEnd();
-        }
-    }, { passive: true });
+        // Touch-hållning avbryts om fingret glider utanför knappen (samma som
+        // mouseleave för mus). Touch-event riktas alltid till elementet där
+        // touchen startade, så touchmove på knappen räcker för en bounds-check.
+        btn.addEventListener('touchmove', function(e) {
+            const t = e.changedTouches[0];
+            const r = this.getBoundingClientRect();
+            if (t.clientX < r.left || t.clientX > r.right ||
+                t.clientY < r.top || t.clientY > r.bottom) {
+                holdEnd();
+            }
+        }, { passive: true });
+
+        // Mus: mousedown startar hållningen (bara vänster knapp), mouseup/mouseleave avslutar
+        btn.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return;
+            e.stopPropagation();
+            holdStart();
+        });
+        btn.addEventListener('mouseleave', holdEnd);
+    });
 
     // touchend/cancel på hela fönstret stänger hållningen (fingret lyfts)
     window.addEventListener('touchend', holdEnd, { passive: true });
     window.addEventListener('touchcancel', holdEnd, { passive: true });
-
-    // Mus: mousedown startar hållningen (bara vänster knapp), mouseup/mouseleave avslutar
-    restartBtn.addEventListener('mousedown', function(e) {
-        if (e.button !== 0) return;
-        e.stopPropagation();
-        holdStart();
-    });
     window.addEventListener('mouseup', holdEnd);
-    restartBtn.addEventListener('mouseleave', holdEnd);
 
     // --- Back-knapp: håll användaren kvar i appen ---
     // Bakåt får aldrig lämna sidan — i pinnat läge strandar den installerade
