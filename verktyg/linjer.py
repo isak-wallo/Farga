@@ -22,6 +22,7 @@ LINJE = (0x3a, 0x3a, 0x44)
 # Beskärningen ska vara ungefär 4:3 efter att himlen lagts till.
 BILDER = {
     'traktor-verklig':      ('ren', (80, 190, 944, 838), 0),
+    # (gravmaskin-verklig är numera omritad för hand i app.js, ritaGravmaskinRen)
     'gravmaskin-verklig':   ('blyerts', (69, 145, 956, 810), 0),
     'flygplan-litet':       ('ren', (0, 258, 784, 846), 0),
     'helikopter-stig':      ('ren', (0, 330, 784, 918), 0),

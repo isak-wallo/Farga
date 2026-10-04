@@ -30,7 +30,8 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
 - Bilder (i ordning): traktor från sidan, traktor snett framifrån (nära en
   klassisk målarboksförlaga ägaren skickade), grävmaskin, flygplan (A330),
   helikopter, samt sex bilder gjorda direkt från förlagor ägaren skickade
-  (AI-genererade målarbokssidor): verklig traktor och grävmaskin, litet
+  (AI-genererade målarbokssidor): verklig traktor och grävmaskin (den
+  senare omritad för hand som rena vektorer, `ritaGravmaskinRen`), litet
   flygplan på gräset, helikopter på stigen, helikopter i luften och
   flygplan vid flygfältet — se "Verkliga bilder" nedan.
 - Landskapslås, fullscreen, layoutlås/dö-yta, back-fälla och offline-SW är
@@ -121,6 +122,14 @@ pushas, annars fastnar plattan på gammal cache.
   litet (`REST_MAX`) och den inte innehåller skyddad bakgrundsfärg
   (`SKYDDAD_MIN`). `SKYDDAD` (bakgrundens färger: gräs, kullar, grus, jord,
   moln, träd, stammar, ladan) räknas aldrig som strimlor.
+
+### Rita om en förlaga för hand (`ritaGravmaskinRen`)
+När en förlaga är för plottrig (blyertsskissen) ritas den om med
+`form()`/`linje()` i bildens koordinater: lägg förlagan i 1200×900 bredvid ett
+rutnät, rita bara de yttre konturerna och de viktigaste delarna (rutor,
+hjul, cylindrar), hoppa över skuggning, reflexer och småstreck. Kontrollera
+genom att lägga de nya linjerna över förlagan (röda på grå) — de ska följa
+förlagans konturer.
 
 ## Bildstil
 Alla bilder är ritade i en finare målarboksstil: tunna jämna konturer
