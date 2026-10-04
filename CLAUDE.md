@@ -117,14 +117,24 @@ pushas, annars fastnar plattan på gammal cache.
   täcker varje del.
 - Färgning: små eller tydliga ytor tar kartans dominerande färg. Stora ytor
   utan tydlig färg ("blandade", t.ex. himmel och mark som läcker ihop genom
-  glapp i linjerna) städas i `stadaBlandade`: linjerna görs tillfälligt
-  `GLAPP` px tjockare så glappen sluts, varje del tar sin dominerande färg,
-  färgstrimlor från kartans grova kanter (`SKVATT`, `SKVATT_MAX`) fylls från
-  grannarna, och pixlarna närmast linjerna tar färg från närmaste del.
-  En yta/del får bara en enda färg om den dominerar (`DOMINANS`), resten är
-  litet (`REST_MAX`) och den inte innehåller skyddad bakgrundsfärg
-  (`SKYDDAD_MIN`). `SKYDDAD` (bakgrundens färger: gräs, kullar, grus, jord,
-  moln, träd, stammar, ladan) räknas aldrig som strimlor.
+  glapp i linjerna) städas i `stadaBlandade` så att färggränserna följer
+  linjerna i stället för kartans grova kanter: (1) linjerna görs tillfälligt
+  `GLAPP` px tjockare så glappen sluts, och delar med tydlig färg får den;
+  (2) i delar som fortfarande är blandade krymps varje färgfläck i kartan
+  till en kärna (`KARNA` px in, fläckar tunnare än `TUNN_FLACK` hoppas
+  över); (3) resten fylls bredden-först från närmaste klara pixel i samma
+  yta — först bara in där kartan har samma färg, sedan överallt. I ytor på
+  själva fordonet tar smala bitar kartans färg direkt (stolpar, springor),
+  i bakgrundsytor (`BAKGRUND_F`) fylls de från grannarna. En yta/del får
+  bara en enda färg om den dominerar (`DOMINANS`), resten är litet
+  (`REST_MAX`) och den inte innehåller skyddad bakgrundsfärg (`SKYDDAD_MIN`).
+- **Kartan ska följa linjerna.** Mät upp linjernas lägen längs kolumner
+  (skriv ut var alfa > 128 längs x = 0, 25, 50 …) och lägg kartans
+  hörnpunkter efter dem, i stället för att gissa från en översiktsbild.
+- **Kontroll av alla bilder:** ladda varje bild, fyll alla ytor
+  (`regionDone`/`commitRegion`) och spara både linjerna och den färglagda
+  bilden i full upplösning; titta på förstorade kvadranter. Gör det efter
+  varje ändring av kartor eller färgningen.
 
 ### Rita om en förlaga för hand (`ritaGravmaskinRen`)
 När en förlaga är för plottrig (blyertsskissen) ritas den om med
