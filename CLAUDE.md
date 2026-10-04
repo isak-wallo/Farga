@@ -29,8 +29,10 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
   blinkar och blir kvar. BÖRJA OM gömmer honom igen.
 - Bilder (i ordning): traktor från sidan, traktor snett framifrån (nära en
   klassisk målarboksförlaga ägaren skickade), grävmaskin, flygplan (A330),
-  helikopter, samt två **verkliga** bilder (traktor och grävmaskin) gjorda
-  direkt från förlagor ägaren skickade — se "Verkliga bilder" nedan.
+  helikopter, samt sex bilder gjorda direkt från förlagor ägaren skickade
+  (AI-genererade målarbokssidor): verklig traktor och grävmaskin, litet
+  flygplan på gräset, helikopter på stigen, helikopter i luften och
+  flygplan vid flygfältet — se "Verkliga bilder" nedan.
 - Landskapslås, fullscreen, layoutlås/dö-yta, back-fälla och offline-SW är
   kopierade från Kludda — se Kluddas CLAUDE.md för detaljerna.
 - Hostas via GitHub Pages: `https://isak-wallo.github.io/Farga/`.
@@ -93,10 +95,10 @@ pushas, annars fastnar plattan på gammal cache.
   något så att han "kikar" upp.
 
 ## Verkliga bilder (konturer från bildfil)
-- `bilder/traktor-verklig.svg` och `bilder/gravmaskin-verklig.svg` är
-  konturlager (1200×900, mörkgrå linjer som **vektorer**, en enda SVG-bana).
-  Så görs de: `verktyg/linjer.py FÖRLAGA-GRÄVMASKIN FÖRLAGA-TRAKTOR` gör
-  rena konturer som PNG (för blyertsskissen: bara tjocka konturstreck på
+- `bilder/*.svg` är konturlager (1200×900, mörkgrå linjer som
+  **vektorer**, en enda SVG-bana). Så görs de: `verktyg/linjer.py
+  namn=FÖRLAGA ...` (beskärning, typ och ev. tillagd himmel per namn står i
+  `BILDER` i skriptet) gör rena konturer som PNG (för blyertsskissen: bara tjocka konturstreck på
   maskinen så skuggning och prickar försvinner, längre streck i
   bakgrunden; ramen tas bort), sedan spårar `verktyg/vektor.py` dem till SVG
   med potrace (`pip install potracer`). PNG:erna behövs inte i repot. SVG är
@@ -104,8 +106,9 @@ pushas, annars fastnar plattan på gammal cache.
   PICTURES-posten har `bild: '...'`; filen laddas i förväg (`pic.img`, SVG:n
   måste ha width/height) och `loadPicture` väntar på den. Lägg nya filer i
   `ASSETS` i `sw.js`.
-- Ritfunktionen (`ritaTraktorVerklig`/`ritaGravmaskinVerklig`) ritar bilden
-  på `lineCanvas`, och i färgläget en **grov färgkarta** (`fyllPoly`,
+- Ritfunktionen (t.ex. `ritaTraktorVerklig`, `ritaHelikopterLuft`) ritar
+  bilden på `lineCanvas` (och kan lägga till egna `moln()`/`sol()` i
+  tillagd himmel), och i färgläget en **grov färgkarta** (`fyllPoly`,
   `fyllEllips` i bildens koordinater, rutnätsbilden hjälper) som ungefär
   täcker varje del.
 - Färgning: små eller tydliga ytor tar kartans dominerande färg. Stora ytor
@@ -114,7 +117,10 @@ pushas, annars fastnar plattan på gammal cache.
   `GLAPP` px tjockare så glappen sluts, varje del tar sin dominerande färg,
   färgstrimlor från kartans grova kanter (`SKVATT`, `SKVATT_MAX`) fylls från
   grannarna, och pixlarna närmast linjerna tar färg från närmaste del.
-  `SKYDDAD` (små träd, stammar, ladan) räknas aldrig som strimlor.
+  En yta/del får bara en enda färg om den dominerar (`DOMINANS`), resten är
+  litet (`REST_MAX`) och den inte innehåller skyddad bakgrundsfärg
+  (`SKYDDAD_MIN`). `SKYDDAD` (bakgrundens färger: gräs, kullar, grus, jord,
+  moln, träd, stammar, ladan) räknas aldrig som strimlor.
 
 ## Bildstil
 Alla bilder är ritade i en finare målarboksstil: tunna jämna konturer

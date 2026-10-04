@@ -1190,6 +1190,203 @@ document.addEventListener('DOMContentLoaded', () => {
         fyllPoly(ctx, F.ljusstal, [[540, 400], [570, 394], [606, 604], [576, 612]]);
     }
 
+    // Litet propellerplan på gräset (förlaga: ägarens målarbokssida).
+    function ritaFlygplanLitet(ctx, pic) {
+        if (!fargLage) { ctx.drawImage(pic.img, 0, 0); return; }
+        ctx.fillStyle = F.akerkulle;
+        ctx.fillRect(0, 0, PAPER_W, PAPER_H);
+        fyllPoly(ctx, F.himmel, [[0, 0], [1200, 0], [1200, 205], [1000, 212], [740, 232], [640, 238],
+            [560, 215], [490, 208], [400, 238], [300, 248], [150, 255], [0, 262]]);
+        fyllPoly(ctx, F.himmel, [[0, 0], [1200, 0], [1200, 200], [960, 120], [730, 125], [570, 145],
+            [400, 95], [300, 110], [220, 150], [0, 185]]);
+        fyllPoly(ctx, F.fjarrkulle, [[220, 150], [300, 110], [400, 95], [570, 145], [730, 125], [740, 232],
+            [640, 238], [560, 215], [490, 208], [400, 238], [220, 245]]);
+        // Stigen som slingrar sig under planet
+        fyllPoly(ctx, F.grus, [[0, 790], [200, 742], [300, 735], [420, 700], [560, 690], [450, 560],
+            [400, 420], [500, 282], [700, 300], [870, 330], [882, 382], [820, 430], [960, 450], [1040, 372],
+            [1120, 415], [1200, 505], [1200, 725], [1120, 790], [1090, 900], [0, 900]]);
+        // Träd, buskar och ladan
+        fyllEllips(ctx, F.trad, 230, 40, 140, 60);
+        fyllEllips(ctx, F.trad, 95, 155, 62, 62);
+        fyllEllips(ctx, F.trad, 1098, 95, 70, 72);
+        fyllEllips(ctx, F.trad, 315, 225, 85, 30);
+        fyllEllips(ctx, F.trad, 670, 222, 45, 16);
+        fyllEllips(ctx, F.trad, 1050, 205, 90, 14);
+        fyllPoly(ctx, F.stam, [[180, 40], [215, 40], [222, 250], [190, 250]]);
+        fyllPoly(ctx, F.stam, [[88, 160], [104, 160], [104, 252], [88, 252]]);
+        fyllPoly(ctx, F.stam, [[1086, 110], [1104, 110], [1104, 215], [1086, 215]]);
+        fyllPoly(ctx, F.morkrod, [[732, 140], [800, 62], [870, 140], [1000, 175], [1000, 232], [732, 236]]);
+        fyllPoly(ctx, F.ljusstal, [[800, 58], [905, 72], [970, 140], [875, 140]]);
+        fyllPoly(ctx, F.flygkropp, [[768, 150], [840, 150], [840, 228], [768, 228]]);
+
+        // Planet: kropp (blå), vingar och stjärtplan (vita)
+        fyllPoly(ctx, F.buk, [[200, 520], [330, 470], [420, 370], [520, 350], [640, 360], [800, 430],
+            [900, 440], [960, 300], [1040, 290], [1040, 490], [940, 560], [800, 640], [560, 700],
+            [400, 728], [260, 715], [200, 640]]);
+        fyllPoly(ctx, F.flygkropp, [[480, 640], [780, 600], [1000, 700], [1060, 780], [1000, 822],
+            [860, 800], [490, 680]]);
+        fyllPoly(ctx, F.flygkropp, [[930, 505], [1000, 495], [1150, 525], [1155, 550], [1060, 552], [935, 525]]);
+        fyllPoly(ctx, F.flygkropp, [[65, 520], [200, 512], [210, 590], [120, 600], [65, 545]]);
+        // Rutor
+        fyllPoly(ctx, F.glas, [[350, 465], [405, 385], [545, 400], [530, 505], [420, 495]]);
+        fyllPoly(ctx, F.glas, [[565, 405], [665, 405], [665, 510], [560, 510]]);
+        fyllPoly(ctx, F.glas, [[680, 415], [750, 440], [750, 492], [684, 497]]);
+        // Motorkåpa, nos och propeller
+        fyllEllips(ctx, F.ljusstal, 230, 600, 45, 80);
+        fyllEllips(ctx, F.sol, 160, 610, 45, 40);
+        fyllPoly(ctx, F.morkstal, [[120, 390], [160, 375], [195, 470], [195, 560], [160, 565]]);
+        fyllPoly(ctx, F.morkstal, [[180, 640], [215, 640], [270, 800], [250, 820], [205, 760]]);
+        // Hjul och ben
+        fyllEllips(ctx, F.dack, 290, 835, 45, 50);
+        fyllEllips(ctx, F.ljusstal, 295, 838, 16, 20);
+        fyllEllips(ctx, F.dack, 692, 822, 52, 58);
+        fyllEllips(ctx, F.ljusstal, 708, 830, 18, 24);
+        fyllPoly(ctx, F.stal, [[300, 728], [340, 722], [320, 790], [290, 785]]);
+        fyllPoly(ctx, F.stal, [[620, 700], [650, 700], [680, 770], [655, 775]]);
+    }
+
+    // Röd helikopter som står på stigen (förlaga: ägarens målarbokssida).
+    function ritaHelikopterStig(ctx, pic) {
+        if (!fargLage) { ctx.drawImage(pic.img, 0, 0); return; }
+        ctx.fillStyle = F.akerkulle;
+        ctx.fillRect(0, 0, PAPER_W, PAPER_H);
+        fyllPoly(ctx, F.himmel, [[0, 0], [1200, 0], [1200, 95], [1050, 90], [870, 48], [780, 52],
+            [690, 85], [500, 38], [400, 20], [230, 60], [0, 60]]);
+        fyllPoly(ctx, F.fjarrkulle, [[0, 60], [230, 60], [400, 20], [500, 38], [690, 85], [780, 52],
+            [870, 48], [1050, 90], [1200, 95], [1200, 190], [1000, 180], [780, 240], [520, 220],
+            [250, 150], [0, 150]]);
+        fyllPoly(ctx, F.grus, [[0, 830], [110, 775], [300, 718], [500, 700], [780, 598], [900, 625],
+            [1000, 700], [990, 780], [930, 850], [860, 900], [0, 900]]);
+        // Träd, buskar och staket
+        fyllEllips(ctx, F.trad, 110, 115, 70, 40);
+        fyllEllips(ctx, F.trad, 300, 135, 65, 35);
+        fyllEllips(ctx, F.trad, 1070, 155, 130, 32);
+        fyllEllips(ctx, F.trad, 1030, 15, 90, 30);
+        fyllEllips(ctx, F.trad, 1160, 15, 50, 30);
+        fyllPoly(ctx, F.stam, [[170, 0], [235, 0], [240, 150], [180, 150]]);
+        fyllPoly(ctx, F.stam, [[1040, 30], [1080, 30], [1080, 185], [1040, 185]]);
+        fyllPoly(ctx, F.stam, [[1000, 262], [1200, 262], [1200, 385], [1000, 385]]);
+        // Helikoptern: kropp (röd), nos nertill (ljus), rutor, rotor och medar
+        fyllPoly(ctx, F.rod, [[230, 600], [270, 480], [340, 400], [490, 370], [500, 320], [640, 315],
+            [720, 340], [760, 400], [790, 470], [800, 560], [760, 640], [650, 690], [500, 720],
+            [330, 720], [240, 660]]);
+        fyllPoly(ctx, F.rod, [[780, 445], [940, 455], [940, 500], [790, 550]]);
+        fyllPoly(ctx, F.rod, [[915, 450], [960, 330], [995, 330], [975, 470], [985, 580], [950, 585]]);
+        fyllPoly(ctx, F.ljusstal, [[232, 600], [245, 548], [330, 538], [490, 560], [500, 610],
+            [330, 632], [235, 622]]);
+        fyllPoly(ctx, F.glas, [[275, 520], [330, 430], [420, 395], [520, 408], [525, 570], [430, 568], [280, 540]]);
+        fyllPoly(ctx, F.glas, [[545, 435], [632, 430], [638, 570], [542, 570]]);
+        fyllPoly(ctx, F.glas, [[668, 438], [735, 440], [740, 550], [670, 552]]);
+        fyllPoly(ctx, F.morkstal, [[225, 242], [540, 248], [545, 272], [228, 276]]);
+        fyllPoly(ctx, F.morkstal, [[622, 248], [945, 256], [945, 284], [624, 276]]);
+        fyllPoly(ctx, F.stal, [[540, 215], [620, 215], [620, 320], [545, 320]]);
+        fyllPoly(ctx, F.morkstal, [[940, 470], [1000, 470], [1050, 410], [1060, 540], [1000, 560], [985, 500]]);
+        fyllPoly(ctx, F.morkstal, [[232, 782], [525, 752], [532, 778], [240, 815]]);
+        fyllPoly(ctx, F.morkstal, [[465, 822], [800, 765], [812, 792], [472, 852]]);
+        fyllPoly(ctx, F.morkstal, [[320, 715], [360, 715], [340, 780], [318, 780]]);
+        fyllPoly(ctx, F.morkstal, [[690, 680], [740, 680], [765, 780], [735, 780]]);
+        fyllPoly(ctx, F.morkstal, [[540, 720], [590, 720], [590, 840], [555, 840]]);
+        fyllPoly(ctx, F.morkstal, [[470, 720], [500, 720], [495, 760], [470, 760]]);
+    }
+
+    // Blå helikopter i luften (förlaga: ägarens målarbokssida). Himlen ovanför
+    // är tillagd med appens egna moln och sol.
+    function ritaHelikopterLuft(ctx, pic) {
+        kant = 4;
+        if (!fargLage) ctx.drawImage(pic.img, 0, 0);
+        else {
+            ctx.fillStyle = F.himmel;
+            ctx.fillRect(0, 0, PAPER_W, PAPER_H);
+            fyllPoly(ctx, F.akerkulle, [[0, 790], [250, 800], [430, 850], [600, 870], [800, 815],
+                [1000, 805], [1200, 795], [1200, 900], [0, 900]]);
+            fyllEllips(ctx, F.moln, 100, 580, 105, 45);
+            fyllEllips(ctx, F.moln, 890, 735, 100, 38);
+            fyllEllips(ctx, F.trad, 70, 770, 75, 60);
+            fyllEllips(ctx, F.trad, 150, 820, 40, 35);
+            fyllEllips(ctx, F.trad, 1130, 790, 70, 50);
+            fyllEllips(ctx, F.trad, 1040, 840, 50, 40);
+            fyllEllips(ctx, F.trad, 750, 885, 60, 25);
+            // Helikoptern: kropp, stjärtbom och fena (blå)
+            fyllPoly(ctx, F.fena, [[190, 690], [230, 600], [300, 540], [420, 500], [480, 465], [700, 470],
+                [760, 540], [780, 600], [770, 700], [700, 752], [500, 772], [300, 762], [200, 732]]);
+            fyllPoly(ctx, F.fena, [[740, 550], [1000, 580], [1000, 632], [760, 662]]);
+            fyllPoly(ctx, F.fena, [[995, 585], [1068, 392], [1108, 396], [1082, 612], [1080, 715],
+                [1040, 715], [1000, 620]]);
+            fyllPoly(ctx, F.fena, [[965, 600], [1095, 600], [1095, 618], [965, 620]]);
+            // Rutor
+            fyllPoly(ctx, F.glas, [[262, 640], [300, 575], [350, 535], [460, 530], [455, 652], [300, 652]]);
+            fyllPoly(ctx, F.glas, [[475, 545], [545, 545], [542, 662], [470, 662]]);
+            fyllPoly(ctx, F.glas, [[558, 552], [637, 556], [637, 660], [560, 660]]);
+            fyllEllips(ctx, F.glas, 355, 705, 60, 38);
+            // Rotor, nav, stjärtrotor och medar
+            fyllPoly(ctx, F.morkstal, [[95, 320], [150, 298], [510, 380], [505, 398]]);
+            fyllPoly(ctx, F.morkstal, [[1065, 298], [1070, 315], [620, 412], [612, 392]]);
+            fyllPoly(ctx, F.morkstal, [[105, 455], [150, 468], [500, 412], [495, 400]]);
+            fyllPoly(ctx, F.morkstal, [[620, 410], [958, 458], [950, 472], [880, 466], [615, 420]]);
+            fyllPoly(ctx, F.stal, [[495, 370], [630, 370], [630, 420], [590, 462], [540, 462], [495, 420]]);
+            fyllPoly(ctx, F.morkstal, [[1100, 460], [1145, 465], [1165, 630], [1080, 660], [1060, 520]]);
+            fyllPoly(ctx, F.morkstal, [[262, 820], [760, 822], [760, 870], [440, 870], [262, 840]]);
+            fyllPoly(ctx, F.morkstal, [[340, 760], [380, 760], [365, 822], [340, 822]]);
+            fyllPoly(ctx, F.morkstal, [[485, 765], [530, 765], [530, 850], [490, 850]]);
+            fyllPoly(ctx, F.morkstal, [[655, 750], [700, 750], [720, 830], [690, 830]]);
+        }
+        sol(ctx, 1080, 110);
+        moln(ctx, 300, 140, 0.9);
+        moln(ctx, 760, 90, 0.7);
+    }
+
+    // Gult propellerplan vid flygfältet med hangar och torn (förlaga: ägarens
+    // målarbokssida). Himlen ovanför är tillagd med appens moln och sol.
+    function ritaFlygplanFalt(ctx, pic) {
+        kant = 4;
+        if (!fargLage) ctx.drawImage(pic.img, 0, 0);
+        else {
+            ctx.fillStyle = F.himmel;
+            ctx.fillRect(0, 0, PAPER_W, PAPER_H);
+            fyllPoly(ctx, F.fjarrkulle, [[0, 430], [100, 412], [300, 435], [500, 438], [650, 465], [820, 432],
+                [1000, 450], [1200, 410], [1200, 560], [0, 556]]);
+            fyllPoly(ctx, F.akerkulle, [[0, 556], [1200, 560], [1200, 900], [0, 900]]);
+            fyllEllips(ctx, F.trad, 82, 485, 35, 40);
+            fyllEllips(ctx, F.trad, 145, 500, 20, 32);
+            fyllEllips(ctx, F.trad, 790, 505, 30, 30);
+            fyllEllips(ctx, F.trad, 190, 550, 45, 10);
+            fyllEllips(ctx, F.trad, 1170, 545, 30, 15);
+            // Hangar och torn
+            fyllPoly(ctx, F.ljusstal, [[945, 525], [990, 498], [1060, 495], [1112, 520], [1112, 567], [945, 567]]);
+            fyllPoly(ctx, F.flygkropp, [[960, 525], [1050, 525], [1050, 567], [960, 567]]);
+            fyllPoly(ctx, F.flygkropp, [[1112, 440], [1152, 440], [1148, 570], [1115, 570]]);
+            fyllPoly(ctx, F.glas, [[1105, 462], [1155, 462], [1155, 478], [1105, 478]]);
+            // Planet: kropp, vingar och stjärtplan (gula)
+            fyllPoly(ctx, F.gul, [[400, 500], [480, 480], [600, 490], [720, 530], [800, 575], [850, 500], [890, 492],
+                [900, 600], [860, 690], [700, 700], [500, 690], [440, 640], [400, 600]]);
+            fyllPoly(ctx, F.gul, [[40, 590], [60, 585], [300, 600], [420, 625], [440, 670], [200, 640], [45, 605]]);
+            fyllPoly(ctx, F.gul, [[520, 640], [700, 620], [1080, 600], [1160, 620], [1150, 640], [860, 690], [560, 680]]);
+            fyllPoly(ctx, F.gul, [[780, 640], [1000, 650], [1020, 672], [800, 672]]);
+            fyllEllips(ctx, F.gul, 400, 595, 60, 95);
+            fyllEllips(ctx, F.stal, 345, 578, 55, 80);
+            fyllEllips(ctx, F.ljusstal, 322, 550, 26, 26);
+            // Propeller
+            fyllPoly(ctx, F.morkstal, [[316, 375], [342, 375], [342, 532], [314, 532]]);
+            fyllPoly(ctx, F.morkstal, [[192, 650], [218, 664], [300, 600], [290, 585]]);
+            fyllPoly(ctx, F.morkstal, [[330, 580], [352, 568], [446, 664], [430, 676]]);
+            // Rutor
+            fyllPoly(ctx, F.glas, [[462, 522], [550, 485], [556, 545], [466, 550]]);
+            fyllPoly(ctx, F.glas, [[556, 506], [626, 506], [621, 575], [556, 570]]);
+            fyllPoly(ctx, F.glas, [[632, 527], [670, 542], [660, 585], [632, 576]]);
+            // Hjul och ben
+            fyllEllips(ctx, F.dack, 340, 755, 40, 47);
+            fyllEllips(ctx, F.ljusstal, 342, 755, 15, 18);
+            fyllEllips(ctx, F.dack, 640, 778, 40, 47);
+            fyllEllips(ctx, F.ljusstal, 645, 778, 15, 18);
+            fyllEllips(ctx, F.dack, 848, 725, 16, 16);
+            fyllPoly(ctx, F.stal, [[350, 660], [390, 665], [372, 740], [350, 735]]);
+            fyllPoly(ctx, F.stal, [[620, 670], [655, 670], [642, 740], [620, 735]]);
+        }
+        sol(ctx, 110, 100);
+        moln(ctx, 470, 150, 0.85);
+        moln(ctx, 920, 230, 0.7);
+    }
+
     // Bilderna. `clawd` = var den lilla kompisen Clawd gömmer sig:
     // (x, y) = mitt under fötterna, s = skala, `ytor` = punkter i de ytor han
     // syns i (han ritas bara där, så det som ligger framför skymmer honom).
@@ -1207,7 +1404,15 @@ document.addEventListener('DOMContentLoaded', () => {
         { namn: 'Traktor (verklig)', rita: ritaTraktorVerklig, bild: 'bilder/traktor-verklig.svg',
           clawd: { x: 600, y: 304, s: 0.42, ytor: [[520, 150], [650, 150], [560, 240], [640, 230]] } },  // kör traktorn
         { namn: 'Grävmaskin (verklig)', rita: ritaGravmaskinVerklig, bild: 'bilder/gravmaskin-verklig.svg',
-          clawd: { x: 820, y: 292, s: 0.4, ytor: [[820, 200]] } }          // kikar över hyttaket
+          clawd: { x: 820, y: 292, s: 0.4, ytor: [[820, 200]] } },         // kikar över hyttaket
+        { namn: 'Litet flygplan', rita: ritaFlygplanLitet, bild: 'bilder/flygplan-litet.svg',
+          clawd: { x: 455, y: 508, s: 0.4, ytor: [[455, 440]] } },         // i cockpitrutan
+        { namn: 'Helikopter på stigen', rita: ritaHelikopterStig, bild: 'bilder/helikopter-stig.svg',
+          clawd: { x: 590, y: 585, s: 0.32, ytor: [[590, 500]] } },        // i dörrens ruta
+        { namn: 'Helikopter i luften', rita: ritaHelikopterLuft, bild: 'bilder/helikopter-luft.svg',
+          clawd: { x: 597, y: 664, s: 0.28, ytor: [[597, 600]] } },        // i sidorutan
+        { namn: 'Flygplan vid fältet', rita: ritaFlygplanFalt, bild: 'bilder/flygplan-falt.svg',
+          clawd: { x: 590, y: 585, s: 0.24, ytor: [[590, 540]] } }         // i sidorutan
     ];
 
     // Bildfilerna laddas i förväg så att bläddring går direkt.
@@ -1331,15 +1536,20 @@ document.addEventListener('DOMContentLoaded', () => {
             else votes[l]--;
         }
         const antal = new Int32Array(n);
+        const skyddadRest = new Int32Array(n);
         for (let i = 0, len = labels.length; i < len; i++) {
             const l = labels[i];
-            if (l > 0 && px[i] === cand[l]) antal[l]++;
+            if (l <= 0) continue;
+            if (px[i] === cand[l]) antal[l]++;
+            else if (SKYDDAD.has(px[i])) skyddadRest[l]++;
         }
         regionColor = cand;
         regionBlandad = new Uint8Array(n);
         let nagonBlandad = false;
         for (let l = 1; l < n; l++) {
-            if (regionSize[l] >= BLANDAD_MIN && antal[l] < regionSize[l] * DOMINANS) {
+            const tydlig = antal[l] >= regionSize[l] * DOMINANS && regionSize[l] - antal[l] < REST_MAX &&
+                skyddadRest[l] < SKYDDAD_MIN;
+            if (regionSize[l] >= BLANDAD_MIN && !tydlig) {
                 regionBlandad[l] = 1;
                 nagonBlandad = true;
             }
@@ -1353,14 +1563,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // dominerande färg ur kartan (om den har en tydlig sådan), och pixlarna
     // närmast linjerna får färg från närmaste del (bredden-först).
     const GLAPP = 3;
+    const REST_MAX = 12000;        // en del får en enda färg bara om resten är så här litet …
+    const SKYDDAD_MIN = 1500;      // … och den inte har mer skyddad bakgrundsfärg än så
     const SKVATT = 0.08;           // andel under vilken en färg räknas som skvätt …
     const SKVATT_MAX = 8000;       // … om den dessutom täcker färre pixlar än så
-    // Små träd, stammar och ladan i bakgrunden får aldrig räknas som skvätt
+    // Bakgrundens färger (gräs, kullar, grus, jord, moln, träd, stammar,
+    // ladan) räknas aldrig som skvätt: strimlorna kommer alltid från
+    // fordonens former, och små bitar mark mellan linjer ska få behålla sin färg.
     function hexTillInt(hex) {
         const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
         return (0xFF000000 | (b << 16) | (g << 8) | r) >>> 0;
     }
-    const SKYDDAD = new Set([F.trad, F.stam, F.morkrod].map(hexTillInt));
+    const SKYDDAD = new Set([F.trad, F.stam, F.morkrod, F.akerkulle, F.fjarrkulle, F.grus, F.jord,
+        F.moln].map(hexTillInt));
     function stadaBlandade() {
         const W = PAPER_W, H = PAPER_H, N = labels.length, px = facitPx;
         // Tjockare linjer: max-filter, först längs rader och sedan kolumner
@@ -1417,15 +1632,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (i >= W) { const q = i - W; if (!del[q] && !nara[q] && labels[q] === l) { del[q] = 1; stack[sp++] = q; } }
                 if (i < N - W) { const q = i + W; if (!del[q] && !nara[q] && labels[q] === l) { del[q] = 1; stack[sp++] = q; } }
             }
-            let antal = 0;
-            for (const i of medlem) if (px[i] === cand) antal++;
-            if (antal >= medlem.length * DOMINANS || medlem.length < BLANDAD_MIN) {
+            const rakna = new Map();
+            for (const i of medlem) rakna.set(px[i], (rakna.get(px[i]) || 0) + 1);
+            const antal = rakna.get(cand);
+            // Skyddade bakgrundsfärger (t.ex. lite mark under himlen) stoppar utplattning
+            let skyddadRest = 0;
+            rakna.forEach((k, c) => { if (c !== cand && SKYDDAD.has(c)) skyddadRest += k; });
+            if ((antal >= medlem.length * DOMINANS && medlem.length - antal < REST_MAX &&
+                 skyddadRest < SKYDDAD_MIN) || medlem.length < BLANDAD_MIN) {
                 for (const i of medlem) { px[i] = cand; klar[i] = 1; }
             } else {
                 // Fortfarande blandad (t.ex. himmel + mark): färger som bara
                 // skvätt in lite (kartans grova kanter) fylls från grannarna.
-                const rakna = new Map();
-                for (const i of medlem) rakna.set(px[i], (rakna.get(px[i]) || 0) + 1);
                 for (const i of medlem) {
                     const k = rakna.get(px[i]);
                     if (SKYDDAD.has(px[i]) || !(k < medlem.length * SKVATT && k < SKVATT_MAX)) klar[i] = 1;

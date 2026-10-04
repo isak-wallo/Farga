@@ -1,6 +1,6 @@
 """Gör om konturlagren i bilder/*.png till vektorer (bilder/*.svg).
 
-Användning: python3 verktyg/vektor.py   (efter verktyg/linjer.py)
+Användning: python3 verktyg/vektor.py   (efter verktyg/linjer.py; tar alla bilder/*.png)
 Spårar linjerna med potrace (pip install potracer) till en enda SVG-bana.
 SVG:n blir ungefär en fjärdedel så stor som PNG:n att ladda ner (GitHub
 Pages skickar den gzippad) och skarp i alla storlekar.
@@ -9,7 +9,8 @@ import os, gzip, time
 import numpy as np, potrace
 from PIL import Image
 BILDER=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bilder')
-for namn in ['traktor-verklig','gravmaskin-verklig']:
+import glob
+for namn in sorted(os.path.basename(f)[:-4] for f in glob.glob(os.path.join(BILDER,'*.png'))):
     a=np.asarray(Image.open(os.path.join(BILDER,namn+'.png')))[...,3]
     t=time.time()
     bm=potrace.Bitmap(a<=127)
