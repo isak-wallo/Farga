@@ -145,7 +145,11 @@ prickar, inga tunna dubbellinjer). Den är dålig på att ändra i efterhand.
 - `verktyg/linjer.py` med typ `'skarp'`: tröskar mitt i linjekanten efter
   lätt brusreducering och sparar i full upplösning; `vektor.py` spårar där
   och skalar ner banorna till 1200 px — mjuka kurvor och rätt linjebredd.
-  Jämför SVG:n med förlagan i förstorade kvadranter.
+  Jämför SVG:n med förlagan i förstorade kvadranter. Glapp i förlagan som
+  gör att en del av fordonet hänger ihop med bakgrunden (t.ex. under
+  traktorns bakskärm) stängs med ett kort streck i `TILLAGG` i linjer.py.
+  Titta på varje del: grävmaskinen tar version 8 av Gemini-sidan eftersom
+  den senare versionen tappade länken mellan cylindern och skopan.
 - Ytorna är helt slutna, så ingen färgkarta behövs: PICTURES-posten har
   `rita: ritaFil` och `farger: { [F.xxx]: [[x, y], ...] }` med en punkt
   inne i varje yta. `fargaFranPunkter` ger varje yta färgen från sin punkt;

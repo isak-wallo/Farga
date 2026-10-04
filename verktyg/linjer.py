@@ -36,6 +36,13 @@ BILDER = {
     'flygplan':             ('skarp', (0, 0, 2000, 1493), 0),
 }
 
+# Tillagda streck (i 1200x900-koordinater) som stänger glapp i förlagan,
+# t.ex. mellan bakskärmens spets och däcket så att ytan under skärmen blir
+# en egen yta i stället för en del av kullen.
+TILLAGG = {
+    'traktor': [[(185, 491), (214, 503)]],
+}
+
 
 def gray(f):
     return np.asarray(Image.open(f).convert('L')).astype(float)
@@ -132,5 +139,16 @@ for arg in sys.argv[1:]:
     namn, fil = arg.split('=', 1)
     typ, crop, himmel = BILDER[namn]
     alpha = {'blyerts': blyerts, 'skarp': skarp}.get(typ, ren)(fil)
+    if namn in TILLAGG:
+        k = (crop[2] - crop[0]) / 1200
+        duk = Image.fromarray(alpha.astype(np.uint8))
+        d = ImageDraw.Draw(duk)
+        for streck in TILLAGG[namn]:
+            pts = [(crop[0] + x * k, crop[1] + y * k) for x, y in streck]
+            d.line(pts, fill=255, width=round(6.5 * k), joint='curve')
+            for x, y in pts:
+                r = 3.25 * k
+                d.ellipse((x - r, y - r, x + r, y + r), fill=255)
+        alpha = np.asarray(duk).astype(float)
     spara(alpha, crop, himmel, namn, hog=(typ == 'skarp'))
     print('skrev', namn)
