@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+  <g id="farg">
+    <path d="M 0 0 L 1200 0 L 1200 900 L 0 900 Z" fill="#cfe6f7"/> <!-- Himmel -->
+    <path d="M 92 115 A 48 48 0 1 0 188 115 A 48 48 0 1 0 92 115 Z" fill="#f8d66d"/> <!-- Sol -->
+    <path d="M 450 110 C 430 110 415 95 415 75 C 415 55 435 40 460 40 C 475 20 505 10 535 15 C 565 20 580 35 590 50 C 610 45 640 55 650 75 C 660 95 645 115 625 120 C 620 135 595 145 565 140 C 535 140 515 130 505 120 C 490 130 465 125 450 110 Z" fill="#f4f8fc"/> <!-- Moln 1 -->
+    <path d="M 850 120 C 830 120 810 105 810 85 C 810 65 830 50 855 50 C 865 30 895 15 925 20 C 955 25 970 45 975 60 C 995 55 1025 65 1035 85 C 1045 105 1035 125 1015 130 C 1015 140 990 155 960 150 C 930 150 910 145 900 135 C 885 145 860 140 850 120 Z" fill="#f4f8fc"/> <!-- Moln 2 -->
+    <path d="M 0 490 Q 300 450 600 480 Q 900 450 1200 480 L 1200 900 L 0 900 Z" fill="#91c47c"/> <!-- Bortre kulle -->
+    <path d="M 80 480 L 83 420 L 113 420 L 116 480 Z" fill="#a8845c"/> <!-- Trädstam -->
+    <path d="M 46 385 A 52 52 0 1 0 150 385 A 52 52 0 1 0 46 385 Z" fill="#7cb86e"/> <!-- Trädkrona -->
+    <path d="M 0 610 Q 350 580 700 600 Q 950 580 1200 610 L 1200 900 L 0 900 Z" fill="#a9d494"/> <!-- Främre äng -->
+    <path d="M 0 780 Q 400 755 800 775 Q 1000 765 1200 780 L 1200 900 L 0 900 Z" fill="#e8d8b0"/> <!-- Byggmark -->
+    <path d="M 870 775 C 910 700 970 660 1060 660 C 1130 660 1180 700 1200 740 L 1200 900 L 870 900 Z" fill="#c49a6c"/> <!-- Jord- och sandhög -->
+    <path d="M 230 660 L 670 660 Q 730 660 730 720 L 730 720 Q 730 780 670 780 L 230 780 Q 170 780 170 720 L 170 720 Q 170 660 230 660 Z" fill="#5c5f68"/> <!-- Larvband yttre -->
+    <path d="M 270 680 L 630 680 Q 670 680 670 720 L 670 720 Q 670 760 630 760 L 270 760 Q 230 760 230 720 L 230 720 Q 230 680 270 680 Z" fill="#6f747c"/> <!-- Larvband ram -->
+    <path d="M 192 720 A 38 38 0 1 0 268 720 A 38 38 0 1 0 192 720 Z" fill="#f2d06b"/> <!-- Drivhjul vänster -->
+    <path d="M 632 720 A 38 38 0 1 0 708 720 A 38 38 0 1 0 632 720 Z" fill="#f2d06b"/> <!-- Spännhjul höger -->
+    <path d="M 314 725 A 26 26 0 1 0 366 725 A 26 26 0 1 0 314 725 Z M 424 725 A 26 26 0 1 0 476 725 A 26 26 0 1 0 424 725 Z M 534 725 A 26 26 0 1 0 586 725 A 26 26 0 1 0 534 725 Z" fill="#a3a9b0"/> <!-- Bärrullar -->
+    <path d="M 368 628 L 572 628 Q 580 628 580 636 L 580 655 Q 580 663 572 663 L 368 663 Q 360 663 360 655 L 360 636 Q 360 628 368 628 Z" fill="#6f747c"/> <!-- Svängkrans -->
+    <path d="M 230 630 L 230 480 C 230 450 255 435 295 435 L 475 435 L 475 630 Z" fill="#f3c34f"/> <!-- Motvikt och motorrum -->
+    <path d="M 281 360 L 293 360 Q 299 360 299 366 L 299 429 Q 299 435 293 435 L 281 435 Q 275 435 275 429 L 275 366 Q 275 360 281 360 Z" fill="#a3a9b0"/> <!-- Avgasrör -->
+    <path d="M 470 370 C 470 350 495 340 540 340 L 680 340 C 715 340 730 350 730 370 L 725 390 L 475 390 Z" fill="#6f747c"/> <!-- Hytt-tak -->
+    <path d="M 620 395 L 705 395 Q 715 395 715 405 L 715 545 Q 715 555 705 555 L 620 555 Q 610 555 610 545 L 610 405 Q 610 395 620 395 Z" fill="#cfe8f6"/> <!-- Förarhytt framruta (Gömställe) -->
+    <path d="M 495 395 L 590 395 Q 600 395 600 405 L 600 545 Q 600 555 590 555 L 495 555 Q 485 555 485 545 L 485 405 Q 485 395 495 395 Z" fill="#cfe8f6"/> <!-- Förarhytt sidoruta -->
+    <path d="M 475 560 L 720 560 L 710 630 L 475 630 Z" fill="#f3c34f"/> <!-- Hyttens nedre kaross -->
+    <path d="M 670 560 C 690 490 730 350 820 270 C 845 250 875 265 870 295 C 850 350 790 490 750 575 Z" fill="#f3c34f"/> <!-- Grävmaskin bom -->
+    <path d="M 650 590 L 755 440 L 775 455 L 665 605 Z" fill="#a3a9b0"/> <!-- Bomcylinder -->
+    <path d="M 825 270 C 845 250 875 260 880 285 L 995 565 L 955 575 L 825 295 Z" fill="#f3c34f"/> <!-- Sticka -->
+    <path d="M 780 315 L 895 350 L 890 370 L 775 335 Z" fill="#a3a9b0"/> <!-- Stickcylinder -->
+    <path d="M 915 470 L 995 525 L 980 550 L 900 495 Z" fill="#a3a9b0"/> <!-- Skopcylinder -->
+    <path d="M 960 575 C 1010 560 1060 590 1060 650 L 1040 730 L 940 710 L 950 630 Z" fill="#6f747c"/> <!-- Grävskopa -->
+    <path d="M 1040 730 L 1070 760 L 1055 765 L 1030 735 L 1020 760 L 1005 765 L 985 725 L 970 750 L 955 750 L 940 710 Z" fill="#a3a9b0"/> <!-- Skoptänder -->
+    <path d="M 826 280 A 19 19 0 1 0 864 280 A 19 19 0 1 0 826 280 Z M 951 580 A 19 19 0 1 0 989 580 A 19 19 0 1 0 951 580 Z" fill="#6f747c"/> <!-- LedTestift -->
+  </g>
+  <g id="linjer" fill="none" stroke="#3a3a44" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 92 115 A 48 48 0 1 0 188 115 A 48 48 0 1 0 92 115 Z" stroke-width="6"/>
+    <path d="M 450 110 C 430 110 415 95 415 75 C 415 55 435 40 460 40 C 475 20 505 10 535 15 C 565 20 580 35 590 50 C 610 45 640 55 650 75 C 660 95 645 115 625 120 C 620 135 595 145 565 140 C 535 140 515 130 505 120 C 490 130 465 125 450 110 Z" stroke-width="6"/>
+    <path d="M 850 120 C 830 120 810 105 810 85 C 810 65 830 50 855 50 C 865 30 895 15 925 20 C 955 25 970 45 975 60 C 995 55 1025 65 1035 85 C 1045 105 1035 125 1015 130 C 1015 140 990 155 960 150 C 930 150 910 145 900 135 C 885 145 860 140 850 120 Z" stroke-width="6"/>
+    <path d="M 0 490 Q 90 475 180 478" stroke-width="6"/>
+    <path d="M 1090 468 Q 1150 475 1200 480" stroke-width="6"/>
+    <path d="M 80 480 L 83 420 L 113 420 L 116 480 Z" stroke-width="5"/>
+    <path d="M 46 385 A 52 52 0 1 0 150 385 A 52 52 0 1 0 46 385 Z" stroke-width="6"/>
+    <path d="M 0 610 Q 75 600 150 595" stroke-width="6"/>
+    <path d="M 1120 600 Q 1160 605 1200 610" stroke-width="6"/>
+    <path d="M 0 780 Q 75 770 150 765" stroke-width="6"/>
+    <path d="M 750 765 Q 810 770 870 770" stroke-width="6"/>
+    <path d="M 870 775 C 910 700 970 660 1060 660 C 1130 660 1180 700 1200 740" stroke-width="7"/>
+    <path d="M 230 660 L 670 660 Q 730 660 730 720 L 730 720 Q 730 780 670 780 L 230 780 Q 170 780 170 720 L 170 720 Q 170 660 230 660 Z" stroke-width="8"/>
+    <path d="M 270 680 L 630 680 Q 670 680 670 720 L 670 720 Q 670 760 630 760 L 270 760 Q 230 760 230 720 L 230 720 Q 230 680 270 680 Z" stroke-width="6"/>
+    <path d="M 192 720 A 38 38 0 1 0 268 720 A 38 38 0 1 0 192 720 Z" stroke-width="5"/>
+    <path d="M 632 720 A 38 38 0 1 0 708 720 A 38 38 0 1 0 632 720 Z" stroke-width="5"/>
+    <path d="M 314 725 A 26 26 0 1 0 366 725 A 26 26 0 1 0 314 725 Z" stroke-width="5"/>
+    <path d="M 424 725 A 26 26 0 1 0 476 725 A 26 26 0 1 0 424 725 Z" stroke-width="5"/>
+    <path d="M 534 725 A 26 26 0 1 0 586 725 A 26 26 0 1 0 534 725 Z" stroke-width="5"/>
+    <path d="M 368 628 L 572 628 Q 580 628 580 636 L 580 655 Q 580 663 572 663 L 368 663 Q 360 663 360 655 L 360 636 Q 360 628 368 628 Z" stroke-width="7"/>
+    <path d="M 230 630 L 230 480 C 230 450 255 435 295 435 L 475 435 L 475 630 Z" stroke-width="7"/>
+    <path d="M 281 360 L 293 360 Q 299 360 299 366 L 299 429 Q 299 435 293 435 L 281 435 Q 275 435 275 429 L 275 366 Q 275 360 281 360 Z" stroke-width="5"/>
+    <path d="M 470 370 C 470 350 495 340 540 340 L 680 340 C 715 340 730 350 730 370 L 725 390 L 475 390 Z" stroke-width="7"/>
+    <path d="M 620 395 L 705 395 Q 715 395 715 405 L 715 545 Q 715 555 705 555 L 620 555 Q 610 555 610 545 L 610 405 Q 610 395 620 395 Z" stroke-width="6"/>
+    <path d="M 495 395 L 590 395 Q 600 395 600 405 L 600 545 Q 600 555 590 555 L 495 555 Q 485 555 485 545 L 485 405 Q 485 395 495 395 Z" stroke-width="6"/>
+    <path d="M 475 560 L 720 560 L 710 630 L 475 630 Z" stroke-width="7"/>
+    <path d="M 670 560 C 690 490 730 350 820 270 C 845 250 875 265 870 295 C 850 350 790 490 750 575 Z" stroke-width="7"/>
+    <path d="M 650 590 L 755 440 L 775 455 L 665 605 Z" stroke-width="5"/>
+    <path d="M 825 270 C 845 250 875 260 880 285 L 995 565 L 955 575 L 825 295 Z" stroke-width="7"/>
+    <path d="M 780 315 L 895 350 L 890 370 L 775 335 Z" stroke-width="5"/>
+    <path d="M 915 470 L 995 525 L 980 550 L 900 495 Z" stroke-width="5"/>
+    <path d="M 960 575 C 1010 560 1060 590 1060 650 L 1040 730 L 940 710 L 950 630 Z" stroke-width="7"/>
+    <path d="M 1040 730 L 1070 760 L 1055 765 L 1030 735 L 1020 760 L 1005 765 L 985 725 L 970 750 L 955 750 L 940 710 Z" stroke-width="6"/>
+    <path d="M 826 280 A 19 19 0 1 0 864 280 A 19 19 0 1 0 826 280 Z" stroke-width="5"/>
+    <path d="M 951 580 A 19 19 0 1 0 989 580 A 19 19 0 1 0 951 580 Z" stroke-width="5"/>
+    <path d="M 200.0 115.0 L 220.0 115.0" stroke-width="3.5"/>
+    <path d="M 188.5 150.3 L 204.7 162.0" stroke-width="3.5"/>
+    <path d="M 158.5 172.1 L 164.7 191.1" stroke-width="3.5"/>
+    <path d="M 121.5 172.1 L 115.3 191.1" stroke-width="3.5"/>
+    <path d="M 91.5 150.3 L 75.3 162.0" stroke-width="3.5"/>
+    <path d="M 80.0 115.0 L 60.0 115.0" stroke-width="3.5"/>
+    <path d="M 91.5 79.7 L 75.3 68.0" stroke-width="3.5"/>
+    <path d="M 121.5 57.9 L 115.3 38.9" stroke-width="3.5"/>
+    <path d="M 158.5 57.9 L 164.7 38.9" stroke-width="3.5"/>
+    <path d="M 188.5 79.7 L 204.7 68.0" stroke-width="3.5"/>
+    <path d="M 930 730 L 970 720 M 1020 695 L 1070 690 M 1110 725 L 1150 720" stroke-width="3.5"/>
+    <path d="M 235 660 L 235 675" stroke-width="3.5"/>
+    <path d="M 235 780 L 235 765" stroke-width="3.5"/>
+    <path d="M 267 660 L 267 675" stroke-width="3.5"/>
+    <path d="M 267 780 L 267 765" stroke-width="3.5"/>
+    <path d="M 299 660 L 299 675" stroke-width="3.5"/>
+    <path d="M 299 780 L 299 765" stroke-width="3.5"/>
+    <path d="M 331 660 L 331 675" stroke-width="3.5"/>
+    <path d="M 331 780 L 331 765" stroke-width="3.5"/>
+    <path d="M 363 660 L 363 675" stroke-width="3.5"/>
+    <path d="M 363 780 L 363 765" stroke-width="3.5"/>
+    <path d="M 395 660 L 395 675" stroke-width="3.5"/>
+    <path d="M 395 780 L 395 765" stroke-width="3.5"/>
+    <path d="M 427 660 L 427 675" stroke-width="3.5"/>
+    <path d="M 427 780 L 427 765" stroke-width="3.5"/>
+    <path d="M 459 660 L 459 675" stroke-width="3.5"/>
+    <path d="M 459 780 L 459 765" stroke-width="3.5"/>
+    <path d="M 491 660 L 491 675" stroke-width="3.5"/>
+    <path d="M 491 780 L 491 765" stroke-width="3.5"/>
+    <path d="M 523 660 L 523 675" stroke-width="3.5"/>
+    <path d="M 523 780 L 523 765" stroke-width="3.5"/>
+    <path d="M 555 660 L 555 675" stroke-width="3.5"/>
+    <path d="M 555 780 L 555 765" stroke-width="3.5"/>
+    <path d="M 587 660 L 587 675" stroke-width="3.5"/>
+    <path d="M 587 780 L 587 765" stroke-width="3.5"/>
+    <path d="M 619 660 L 619 675" stroke-width="3.5"/>
+    <path d="M 619 780 L 619 765" stroke-width="3.5"/>
+    <path d="M 651 660 L 651 675" stroke-width="3.5"/>
+    <path d="M 651 780 L 651 765" stroke-width="3.5"/>
+    <path d="M 260 490 L 330 490 M 260 520 L 330 520 M 260 550 L 330 550" stroke-width="3.5"/>
+    <path d="M 660 510 L 660 470 M 645 470 L 675 470" stroke-width="3.5"/>
+    <path d="M 530 520 L 530 460 C 530 445 555 445 555 460 L 555 520" stroke-width="3.5"/>
+    <path d="M 590 580 L 630 580" stroke-width="4"/>
+  </g>
+</svg>
