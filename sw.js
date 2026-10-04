@@ -1,6 +1,6 @@
 // Höj VERSION (v1 -> v2 osv.) varje gång du laddar upp nya filer,
 // så hämtas och cachas den nya versionen säkert.
-const VERSION = 'v11';
+const VERSION = 'v12';
 const CACHE = 'farga-' + VERSION;
 
 const ASSETS = [
@@ -11,8 +11,8 @@ const ASSETS = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  './bilder/traktor-verklig.png',
-  './bilder/gravmaskin-verklig.png'
+  './bilder/traktor-verklig.svg',
+  './bilder/gravmaskin-verklig.svg'
 ];
 
 // Installera: cacha allt och ta över direkt

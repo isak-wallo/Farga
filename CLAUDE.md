@@ -93,13 +93,17 @@ pushas, annars fastnar plattan på gammal cache.
   något så att han "kikar" upp.
 
 ## Verkliga bilder (konturer från bildfil)
-- `bilder/traktor-verklig.png` och `bilder/gravmaskin-verklig.png` är
-  konturlager (1200×900, genomskinliga, mörkgrå linjer) gjorda med
-  `verktyg/linjer.py` från ägarens förlagor (en ren linjeteckning och en
-  blyertsskiss; skissens skuggning tunnas ut med en tröskel och små prickar
-  tas bort). PICTURES-posten har `bild: '...'`; filen laddas i förväg
-  (`pic.img`) och `loadPicture` väntar på den. Lägg nya filer i `ASSETS` i
-  `sw.js`.
+- `bilder/traktor-verklig.svg` och `bilder/gravmaskin-verklig.svg` är
+  konturlager (1200×900, mörkgrå linjer som **vektorer**, en enda SVG-bana).
+  Så görs de: `verktyg/linjer.py FÖRLAGA-GRÄVMASKIN FÖRLAGA-TRAKTOR` gör
+  rena konturer som PNG (för blyertsskissen: bara tjocka konturstreck på
+  maskinen så skuggning och prickar försvinner, längre streck i
+  bakgrunden; ramen tas bort), sedan spårar `verktyg/vektor.py` dem till SVG
+  med potrace (`pip install potracer`). PNG:erna behövs inte i repot. SVG är
+  ungefär en fjärdedel så stor att ladda ner (GitHub Pages gzippar den).
+  PICTURES-posten har `bild: '...'`; filen laddas i förväg (`pic.img`, SVG:n
+  måste ha width/height) och `loadPicture` väntar på den. Lägg nya filer i
+  `ASSETS` i `sw.js`.
 - Ritfunktionen (`ritaTraktorVerklig`/`ritaGravmaskinVerklig`) ritar bilden
   på `lineCanvas`, och i färgläget en **grov färgkarta** (`fyllPoly`,
   `fyllEllips` i bildens koordinater, rutnätsbilden hjälper) som ungefär

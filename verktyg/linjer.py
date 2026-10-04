@@ -35,17 +35,25 @@ def spara(alpha, crop, namn):
     v.save(namn+'-rut.png')
 
 # Grävmaskin (blyertsskiss på papper)
+def smaborta(mask, minsta):
+    lab,n=nd.label(mask,structure=np.ones((3,3)))
+    sz=nd.sum(mask,lab,range(1,n+1))
+    return mask & ~np.isin(lab,np.where(sz<minsta)[0]+1)
 g=gray(GRAV)
 bg=nd.gaussian_filter(nd.maximum_filter(g,15),8)
 d=np.clip(bg-g,0,255)
-mask=d>85
-lab,n=nd.label(mask,structure=np.ones((3,3)))
-sz=nd.sum(mask,lab,range(1,n+1))
-liten=np.isin(lab,np.where(sz<80)[0]+1)
-alpha=np.clip((d-60)*8,0,255); alpha[liten]=0; alpha[~nd.binary_dilation(mask,iterations=1)]=0
-# ta bort ramen och allt utanför den
-alpha[:, :107]=0; alpha[:, 916:]=0
-alpha[:107,:]=0; alpha[916:,:]=0
+d[:, :107]=0; d[:, 916:]=0; d[:107,:]=0; d[916:,:]=0      # ramen och pappret utanför
+# Maskinen: bara de tjocka konturstrecken (öppning tar bort tunn skuggning
+# och prickar), i sin ursprungliga form.
+mask=d>70
+stark=nd.binary_opening(mask,structure=np.ones((3,3)))
+maskinlinjer=smaborta(nd.binary_dilation(stark,iterations=2) & mask, 150)
+# Bakgrunden (kullar, träd, buskar) är tunnare streck: ta de längre strecken
+# utanför maskinens område.
+maskin=nd.binary_fill_holes(nd.binary_closing(nd.binary_dilation(maskinlinjer,iterations=4),structure=np.ones((25,25))))
+maskin=nd.binary_dilation(maskin,iterations=3)
+linjer=maskinlinjer | (smaborta(d>85,200) & ~maskin)
+alpha=np.clip((d-45)*8,0,255); alpha[~nd.binary_dilation(linjer,iterations=1)]=0
 spara(alpha,(69,145,956,810),'gravmaskin-verklig')
 
 # Traktor (ren linjekonst)

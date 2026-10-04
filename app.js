@@ -1171,7 +1171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fyllPoly(ctx, F.morkstal, [[640, 608], [1004, 600], [1004, 660], [640, 668]]);
 
         // Överdel: motorrum, hytt, motorhuv, tak och rutor
-        fyllPoly(ctx, F.gul, [[488, 380], [660, 300], [952, 292], [956, 420], [1000, 436], [1032, 470],
+        fyllPoly(ctx, F.gul, [[492, 428], [560, 414], [652, 330], [660, 300], [952, 292], [956, 420], [1000, 436], [1032, 470],
             [1032, 610], [800, 650], [640, 640], [490, 615]]);
         fyllPoly(ctx, F.ljusstal, [[668, 262], [948, 268], [952, 302], [664, 300]]);
         fyllPoly(ctx, F.glas, [[664, 310], [802, 305], [802, 590], [654, 590]]);
@@ -1204,9 +1204,9 @@ document.addEventListener('DOMContentLoaded', () => {
           clawd: { x: 1040, y: 574, s: 0.34, ytor: [[1040, 500]] } },     // bakom molnet
         { namn: 'Helikopter', rita: ritaHelikopter,
           clawd: { x: 466, y: 470, s: 0.32, ytor: [[466, 380]] } },        // i dörrens ruta
-        { namn: 'Traktor (verklig)', rita: ritaTraktorVerklig, bild: 'bilder/traktor-verklig.png',
+        { namn: 'Traktor (verklig)', rita: ritaTraktorVerklig, bild: 'bilder/traktor-verklig.svg',
           clawd: { x: 600, y: 304, s: 0.42, ytor: [[520, 150], [650, 150], [560, 240], [640, 230]] } },  // kör traktorn
-        { namn: 'Grävmaskin (verklig)', rita: ritaGravmaskinVerklig, bild: 'bilder/gravmaskin-verklig.png',
+        { namn: 'Grävmaskin (verklig)', rita: ritaGravmaskinVerklig, bild: 'bilder/gravmaskin-verklig.svg',
           clawd: { x: 820, y: 292, s: 0.4, ytor: [[820, 200]] } }          // kikar över hyttaket
     ];
 
