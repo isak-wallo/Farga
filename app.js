@@ -600,6 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Bilderna. `clawd` = var den lilla kompisen Clawd gömmer sig:
     // (x, y) = mitt under fötterna, s = skala, `ytor` = punkter i de ytor han
     // syns i (han ritas bara där, så det som ligger framför skymmer honom).
+    // `vilar: true` = bilden ligger i malpåse: den finns kvar men visas inte.
     const PICTURES = [
         { namn: 'Traktor', rita: ritaFil, bild: 'bilder/traktor.svg',
           farger: {
@@ -770,7 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
             [F.morkstal]: [[540, 294], [554, 294], [528, 414], [585, 417], [871, 234], [340, 393], [468, 583], [510, 562], [554, 562], [566, 559], [590, 576], [586, 593], [546, 598], [528, 620], [412, 713], [358, 667], [617, 654], [612, 682], [455, 762], [844, 579], [885, 601], [853, 605], [893, 536], [893, 543], [933, 674], [933, 612]],
             [F.dack]: [[492, 783], [704, 737], [338, 613], [382, 614], [278, 616], [414, 619], [449, 624], [478, 632], [497, 642], [538, 649], [540, 669], [557, 696], [557, 729], [565, 756], [529, 780], [733, 632], [761, 653], [749, 685], [748, 713], [734, 734], [616, 597], [647, 603], [683, 610], [578, 615], [720, 617], [620, 623], [577, 629], [670, 639]] },
           clawd: { x: 652, y: 508, s: 0.26, ytor: [[656, 460]] } },       // i hyttens ruta
-        { namn: 'Helikopter snett', rita: ritaFil, bild: 'bilder/helikopter-snett.svg',
+        { namn: 'Helikopter snett', vilar: true, rita: ritaFil, bild: 'bilder/helikopter-snett.svg',
           farger: {
             [F.himmel]: [[672, 0]],
             [F.sol]: [[145, 123], [285, 522]],
@@ -811,7 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
             [F.dack]: [[728, 657], [482, 611], [461, 614], [262, 723], [282, 731]],
             [F.ruta]: [[165, 551], [255, 551], [226, 552], [197, 551], [770, 431], [752, 435], [734, 439], [715, 441], [696, 449], [676, 453], [656, 458], [636, 465], [615, 467], [540, 485], [520, 493], [499, 496], [478, 501], [457, 507], [436, 513], [414, 517], [392, 521], [370, 526]] },
           clawd: { x: 1000, y: 112, s: 0.28, ytor: [[550, 0]] } },        // bakom molnet
-        { namn: 'Propellerplan', rita: ritaFil, bild: 'bilder/propellerplan.svg',
+        { namn: 'Propellerplan', vilar: true, rita: ritaFil, bild: 'bilder/propellerplan.svg',
           farger: {
             [F.himmel]: [[533, 0]],
             [F.sol]: [[209, 123], [191, 448], [337, 611], [293, 600]],
@@ -851,7 +852,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     [524, 222, 553, 228], [614, 230, 650, 231, 700, 235, 745, 239],
                     [113, 774, 60, 800, 0, 829], [301, 721, 327, 714], [1132, 386, 1155, 386], [1201, 270, 1201, 370]],
           clawd: { x: 590, y: 585, s: 0.32, ytor: [[590, 500]] } },        // i dörrens ruta
-        { namn: 'Helikopter i luften', rita: ritaHelikopterLuft, bild: 'bilder/helikopter-luft.svg', helaYtor: true,
+        { namn: 'Helikopter i luften', vilar: true, rita: ritaHelikopterLuft, bild: 'bilder/helikopter-luft.svg', helaYtor: true,
           farger: {
             [F.akerkulle]: [[220, 830], [800, 845]],
             [F.akerkulle]: [[100, 880]],
@@ -860,7 +861,7 @@ document.addEventListener('DOMContentLoaded', () => {
           delningar: [[248, 811, 268, 818], [293, 837, 310, 862, 332, 896], [772, 818, 756, 832], [735, 846, 738, 870]],
           tillagg: [[1128, 862, 1143, 862], [1128, 898, 1143, 898]],
           clawd: { x: 597, y: 664, s: 0.28, ytor: [[597, 600]] } },        // i sidorutan
-        { namn: 'Flygplan vid fältet', rita: ritaFlygplanFalt, bild: 'bilder/flygplan-falt.svg', helaYtor: true,
+        { namn: 'Flygplan vid fältet', vilar: true, rita: ritaFlygplanFalt, bild: 'bilder/flygplan-falt.svg', helaYtor: true,
           farger: {
             [F.fonster]: [[462, 502]],
             [F.stal]: [[309, 519], [311, 527], [285, 607]],
@@ -870,6 +871,7 @@ document.addEventListener('DOMContentLoaded', () => {
           tillagg: [[1184, 553, 1200, 558], [1186, 563, 1200, 563], [77, 523, 91, 521], [143, 537, 154, 537], [783, 535, 795, 535]],
           clawd: { x: 590, y: 585, s: 0.24, ytor: [[590, 540]] } }         // i sidorutan
     ];
+    for (let k = PICTURES.length - 1; k >= 0; k--) if (PICTURES[k].vilar) PICTURES.splice(k, 1);
 
     // Bildfilerna laddas i förväg så att bläddring går direkt.
     PICTURES.forEach(pic => {

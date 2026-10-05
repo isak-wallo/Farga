@@ -37,6 +37,10 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
   samma stil, se "Rena sidor" nedan — samt fyra äldre bilder spårade från
   förlagor ägaren skickade: litet flygplan på gräset, helikopter på stigen,
   helikopter i luften och flygplan vid flygfältet (se "Verkliga bilder").
+- **Malpåse:** en post i `PICTURES` med `vilar: true` visas inte (tas bort
+  ur listan vid start) men finns kvar. Just nu vilar de mest detaljerade:
+  helikopter snett (röd-vit), propellerplanet (röd-vitt), helikopter i
+  luften och flygplan vid fältet. Ta bort `vilar` för att visa dem igen.
 - Landskapslås, fullscreen, layoutlås/dö-yta, back-fälla och offline-SW är
   kopierade från Kludda — se Kluddas CLAUDE.md för detaljerna.
 - Hostas via GitHub Pages: `https://isak-wallo.github.io/Farga/`.
