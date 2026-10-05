@@ -354,57 +354,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Gårdsbakgrund för fordonen: bortre kullar med små träd, en åker
-    // och marken som fordonet står på. Tunna linjer, lugna färger.
-    // `o.sol` = [x, y], `o.moln` = [[x, y, skala]], `o.trad` = [[x, y, skala]].
-    function faltBakgrund(ctx, o) {
-        const bortre = c => {
-            c.moveTo(-20, 470);
-            c.bezierCurveTo(160, 420, 360, 420, 540, 462);
-            c.bezierCurveTo(720, 500, 900, 430, 1060, 440);
-            c.bezierCurveTo(1130, 444, 1180, 455, 1220, 452);
-        };
-        const faltkant = c => {
-            c.moveTo(-20, 600);
-            c.bezierCurveTo(300, 575, 800, 612, 1220, 585);
-        };
-        if (fargLage) {
-            ctx.fillStyle = F.himmel;
-            ctx.fillRect(0, 0, PAPER_W, PAPER_H);
-            [[bortre, F.fjarrkulle], [faltkant, F.akerkulle]].forEach(([bana, farg]) => {
-                ctx.beginPath();
-                bana(ctx);
-                ctx.lineTo(1220, 1000);
-                ctx.lineTo(-20, 1000);
-                ctx.closePath();
-                ctx.fillStyle = farg;
-                ctx.fill();
-            });
-        }
-        linje(ctx, bortre, 4);
-        linje(ctx, faltkant, 4);
-        // Fåror på bortre åkern (fria ändar)
-        [[40, 540, 190, 532], [60, 572, 230, 566], [960, 520, 1140, 512], [930, 556, 1150, 548]].forEach(f => {
-            linje(ctx, c => {
-                c.moveTo(f[0], f[1]);
-                c.quadraticCurveTo((f[0] + f[2]) / 2, (f[1] + f[3]) / 2 - 6, f[2], f[3]);
-            }, 3);
-        });
-        o.trad.forEach(t => trad(ctx, t[0], t[1], t[2]));
-        sol(ctx, o.sol[0], o.sol[1]);
-        o.moln.forEach(m => moln(ctx, m[0], m[1], m[2]));
-        // Hjulspår och gräs i förgrunden
-        [[30, 850, 260, 842], [700, 868, 980, 858], [330, 885, 600, 880]].forEach(f => {
-            linje(ctx, c => {
-                c.moveTo(f[0], f[1]);
-                c.quadraticCurveTo((f[0] + f[2]) / 2, (f[1] + f[3]) / 2 - 6, f[2], f[3]);
-            }, 3);
-        });
-        grastuss(ctx, 70, 815, 1);
-        grastuss(ctx, 640, 845, 0.8);
-        grastuss(ctx, 1150, 870, 1);
-    }
-
     // Månghörning med rundade hörn (punkter medurs, r = hörnradie)
     function rmangel(ctx, pts, r) {
         const n = pts.length;
@@ -416,140 +365,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.arcTo(p[0], p[1], m[0], m[1], r);
         }
         ctx.closePath();
-    }
-
-    // Däck och fälg i perspektiv (ellipser): klackar runt däcket, fälg,
-    // nav och bultar. (cx, cy, rx, ry) = däcket, (fx, fy, frx, fry) = fälgen.
-    function hjulSnett(ctx, cx, cy, rx, ry, fx, fy, frx, fry) {
-        form(ctx, c => ellips(c, cx, cy, rx, ry), F.dack);
-        // Klackar: grova på vänstra sidan där slitbanan syns, korta runt om
-        for (let g = 0; g < 360; g += 12) {
-            const a = g * Math.PI / 180;
-            const grov = g > 100 && g < 260;
-            const f = grov ? 0.62 : 0.84;
-            linje(ctx, c => {
-                c.moveTo(cx + Math.cos(a) * rx, cy + Math.sin(a) * ry);
-                c.lineTo(cx + Math.cos(a + 0.1) * rx * f, cy + Math.sin(a + 0.1) * ry * f);
-            }, grov ? 5 : 3);
-        }
-        form(ctx, c => ellips(c, fx, fy, frx, fry), F.falg);
-        linje(ctx, c => c.ellipse(fx + frx * 0.08, fy, frx * 0.7, fry * 0.7, 0, 0.2 * Math.PI, 1.8 * Math.PI), 3);
-        form(ctx, c => ellips(c, fx + frx * 0.12, fy + fry * 0.04, frx * 0.34, fry * 0.34), F.stal);
-        for (let k = 0; k < 6; k++) {
-            const a = k * Math.PI / 3;
-            prick(ctx, fx + frx * 0.12 + Math.cos(a) * frx * 0.22, fy + fry * 0.04 + Math.sin(a) * fry * 0.22, 3);
-        }
-        prick(ctx, fx + frx * 0.12, fy + fry * 0.04, 5);
-    }
-
-    // Traktor snett framifrån, nära förlagan ägaren skickade (klassisk
-    // målarbok). Ritad i förlagans koordinater (1024-bilden) och skalad in.
-    function ritaTraktorSnett(ctx) {
-        stilSatt(ctx);
-        kant = 4;
-        faltBakgrund(ctx, {
-            sol: [110, 95], moln: [[330, 120, 0.7], [1020, 190, 0.55]],
-            trad: [[1100, 450, 0.8], [70, 456, 0.38], [120, 460, 0.3]]
-        });
-        kant = 5;
-
-        ctx.save();
-        ctx.translate(60, -120);
-        ctx.scale(1.05, 1.05);
-
-        // Avgasrör med ljuddämpare och nät
-        form(ctx, c => {
-            stav(c, 352, 445, 352, 268, 18);
-            stav(c, 352, 268, 344, 254, 18);
-            rr(c, 333, 328, 38, 104, 6);
-        }, F.stal);
-        for (let k = 0; k < 4; k++) {
-            linje(ctx, c => { c.moveTo(341, 344 + k * 20); c.lineTo(363, 360 + k * 20); }, 3);
-            linje(ctx, c => { c.moveTo(363, 344 + k * 20); c.lineTo(341, 360 + k * 20); }, 3);
-        }
-
-        // Bortre framhjulet (bakom stötfångaren)
-        hjulSnett(ctx, 238, 700, 70, 94, 250, 706, 30, 50);
-
-        // Ram under huven
-        form(ctx, c => mangel(c, [[372, 600], [600, 585], [650, 600], [650, 650], [390, 672]]), F.morkstal);
-
-        // Hytt: sida, front, varningsljus och tak
-        form(ctx, c => rmangel(c, [[582, 240], [750, 250], [754, 545], [590, 560]], 8), F.rod);
-        form(ctx, c => rmangel(c, [[424, 254], [582, 240], [590, 452], [408, 442]], 8), F.rod);
-        tunnForm(ctx, c => rr(c, 436, 214, 24, 16, 5), F.sol, 4);
-        tunnForm(ctx, c => rr(c, 562, 196, 24, 16, 5), F.sol, 4);
-        form(ctx, c => rmangel(c, [[414, 230], [575, 208], [750, 226], [756, 250], [578, 240], [410, 256]], 10), F.ljusstal);
-
-        // Rutor: vindruta, dörr och bakre sidoruta
-        form(ctx, c => rmangel(c, [[438, 268], [568, 258], [574, 432], [424, 426]], 10), F.glas);
-        form(ctx, c => rmangel(c, [[600, 262], [690, 266], [690, 420], [602, 424]], 8), F.glas);
-        form(ctx, c => rmangel(c, [[702, 268], [738, 271], [738, 410], [702, 416]], 8), F.glas);
-        // Ratt och torkare genom vindrutan, stol genom dörrens ruta
-        linje(ctx, c => c.ellipse(520, 390, 30, 10, -0.1, 0, 2 * Math.PI), 3);
-        linje(ctx, c => { c.moveTo(526, 400); c.lineTo(536, 420); }, 3);
-        linje(ctx, c => { c.moveTo(456, 412); c.lineTo(504, 284); }, 3);
-        linje(ctx, c => {
-            c.moveTo(614, 410); c.lineTo(618, 352);
-            c.quadraticCurveTo(622, 338, 640, 340); c.lineTo(648, 384); c.lineTo(676, 388);
-        }, 3);
-        // Dörrfogar och handtag
-        linje(ctx, c => { c.moveTo(597, 440); c.lineTo(599, 548); }, 3);
-        linje(ctx, c => { c.moveTo(694, 436); c.lineTo(696, 540); }, 3);
-        linje(ctx, c => { c.moveTo(612, 456); c.lineTo(634, 456); }, 4);
-
-        // Huv med front och sida
-        form(ctx, c => {
-            c.moveTo(248, 500);
-            c.bezierCurveTo(250, 470, 272, 455, 305, 450);
-            c.lineTo(520, 424);
-            c.bezierCurveTo(548, 420, 575, 428, 590, 445);
-            c.lineTo(590, 598);
-            c.lineTo(372, 630);
-            c.lineTo(262, 634);
-            c.bezierCurveTo(254, 600, 248, 550, 248, 500);
-            c.closePath();
-        }, F.rod);
-        linje(ctx, c => { c.moveTo(350, 445); c.quadraticCurveTo(372, 470, 372, 630); }, 4);   // kant front/sida
-        linje(ctx, c => { c.moveTo(392, 470); c.quadraticCurveTo(470, 450, 566, 448); }, 3);   // huvens rundning
-        for (let k = 0; k < 4; k++) {                                                          // luftspringor
-            linje(ctx, c => { c.moveTo(478 + k * 14, 474); c.lineTo(478 + k * 14, 516); }, 3);
-        }
-        linje(ctx, c => { c.moveTo(404, 548); c.lineTo(570, 532); }, 3);                       // panelfog
-
-        // Grill i två halvor, strålkastare
-        form(ctx, c => rmangel(c, [[262, 490], [338, 484], [340, 612], [266, 618]], 14), F.stal);
-        linje(ctx, c => { c.moveTo(300, 487); c.lineTo(302, 615); }, 5);
-        [276, 288, 314, 326].forEach(x => linje(ctx, c => { c.moveTo(x, 502); c.lineTo(x + 1, 600); }, 3));
-        form(ctx, c => cirkel(c, 234, 552, 14), F.glas);
-        form(ctx, c => cirkel(c, 390, 566, 22), F.glas);
-        linje(ctx, c => c.arc(390, 566, 12, 0.3 * Math.PI, 1.7 * Math.PI), 3);
-
-        // Stötfångare / frontvikt
-        form(ctx, c => rmangel(c, [[232, 640], [372, 632], [412, 645], [410, 688], [372, 698], [236, 686]], 6), F.morkstal);
-        linje(ctx, c => { c.moveTo(372, 632); c.lineTo(372, 698); }, 4);
-
-        // Närmre framhjulet
-        hjulSnett(ctx, 486, 718, 76, 84, 494, 722, 40, 52);
-
-        // Fotsteg upp till hytten
-        linje(ctx, c => { c.moveTo(592, 572); c.lineTo(602, 690); }, 4);
-        linje(ctx, c => { c.moveTo(628, 568); c.lineTo(640, 686); }, 4);
-        [604, 636, 668].forEach(y => linje(ctx, c => { c.moveTo(595, y); c.lineTo(634, y - 2); }, 4));
-
-        // Bakhjulet och stänkskärmen
-        hjulSnett(ctx, 762, 625, 120, 155, 795, 622, 50, 82);
-        form(ctx, c => {
-            c.moveTo(640, 585);
-            c.bezierCurveTo(642, 505, 700, 440, 788, 436);
-            c.bezierCurveTo(830, 435, 856, 452, 860, 478);
-            c.lineTo(846, 490);
-            c.bezierCurveTo(800, 466, 722, 470, 688, 520);
-            c.bezierCurveTo(672, 545, 664, 568, 662, 588);
-            c.closePath();
-        }, F.rod);
-
-        ctx.restore();
     }
 
     // --- Verkliga bilder (från förlagor ägaren skickade) ---
@@ -1150,8 +965,27 @@ document.addEventListener('DOMContentLoaded', () => {
             [F.stal]: [[688, 287], [582, 614], [594, 678]],
             [F.morkstal]: [[554, 593], [553, 168], [689, 218], [484, 397], [225, 410], [991, 481], [1003, 467], [978, 473], [1011, 600], [804, 557], [592, 592], [589, 635], [586, 661], [680, 685], [355, 621], [355, 588], [322, 621], [388, 621], [355, 654], [877, 673]] },
           clawd: { x: 386, y: 392, s: 0.34, ytor: [[386, 300]] } },       // i bakre rutan
-        { namn: 'Traktor snett', rita: ritaTraktorSnett,
-          clawd: { x: 1100, y: 360, s: 0.24, ytor: [[1100, 310]] } },     // bakom trädet
+        { namn: 'Traktor snett', rita: ritaFil, bild: 'bilder/traktor-snett.svg',
+          farger: {
+            [F.himmel]: [[410, 0]],
+            [F.sol]: [[207, 122], [639, 182], [511, 192], [257, 452], [343, 450], [447, 448], [427, 443]],
+            [F.moln]: [[874, 117], [1005, 140], [131, 175]],
+            [F.trad]: [[1096, 309], [102, 387]],
+            [F.stam]: [[1093, 376], [103, 477]],
+            [F.fjarrkulle]: [[0, 458], [210, 387], [1011, 374]],
+            [F.kulle2]: [[1199, 459]],
+            [F.akerkulle]: [[0, 632], [1199, 643], [741, 702], [394, 711]],
+            [F.mark]: [[716, 899]],
+            [F.rod]: [[660, 384], [727, 510], [626, 417], [614, 511], [326, 408], [576, 381], [420, 516], [370, 475], [283, 446], [534, 507], [787, 446], [810, 466], [947, 414], [893, 574], [541, 648]],
+            [F.morkrod]: [[582, 488], [611, 559], [571, 545]],
+            [F.fonster]: [[587, 285], [745, 312], [839, 328]],
+            [F.ljusstal]: [[742, 181], [602, 184], [667, 184], [491, 194]],
+            [F.stal]: [[435, 272], [312, 452], [272, 566], [260, 600], [291, 672], [708, 567], [723, 622], [742, 677], [954, 380], [965, 384]],
+            [F.morkstal]: [[422, 206], [775, 367], [665, 501], [666, 514], [348, 480], [247, 475], [257, 476], [269, 485], [318, 483], [286, 484], [305, 506], [333, 497], [321, 613], [397, 602], [382, 654], [356, 636], [659, 562], [680, 543], [713, 540], [720, 592], [707, 667], [753, 542], [731, 653], [909, 422], [902, 433], [864, 438], [859, 458], [828, 479], [952, 438], [905, 601], [905, 566], [927, 600], [883, 600], [905, 634], [545, 670]],
+            [F.gul]: [[935, 699], [964, 566], [542, 602], [587, 651], [298, 721], [336, 681]],
+            [F.falg]: [[907, 667], [539, 720], [295, 698]],
+            [F.dack]: [[672, 701], [629, 742], [921, 736], [825, 504], [805, 534], [805, 565], [794, 602], [802, 633], [802, 672], [818, 698], [827, 733], [849, 750], [896, 769], [865, 769], [952, 757], [554, 571], [484, 536], [457, 653], [451, 558], [426, 597], [410, 635], [406, 680], [458, 703], [417, 727], [470, 750], [478, 775], [495, 788], [531, 801], [509, 801], [306, 748], [217, 680], [214, 554], [189, 585], [216, 587], [215, 617], [176, 625], [172, 667], [182, 709], [228, 723], [235, 747], [251, 758], [285, 773], [263, 773]] },
+          clawd: { x: 600, y: 386, s: 0.32, ytor: [[587, 285]] } },       // i framrutan
         { namn: 'Grävmaskin', rita: ritaFil, bild: 'bilder/gravmaskin.svg',
           farger: {
             [F.himmel]: [[505, 0], [890, 261]],

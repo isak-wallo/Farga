@@ -30,10 +30,9 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
   inte från början; när man målat `CLAWD_TRAFF` pixlar där han är (eller hans
   yta fylls i) poppar han upp med en liten studs, vinkar två gånger,
   blinkar och blir kvar. BÖRJA OM gömmer honom igen.
-- Bilder (i ordning): traktor från sidan, traktor snett framifrån (nära en
-  klassisk målarboksförlaga ägaren skickade), grävmaskin, flygplan på
-  banan, helikopter på plattan (de fyra är Gemini-sidor i samma stil, se
-  "Rena sidor" nedan), samt sex bilder gjorda direkt från förlagor ägaren skickade
+- Bilder (i ordning): traktor från sidan, traktor snett framifrån (i
+  perspektiv), grävmaskin, flygplan på banan, helikopter på plattan (de
+  fem är rena AI-sidor i samma stil, se "Rena sidor" nedan), samt sex bilder gjorda direkt från förlagor ägaren skickade
   (AI-genererade målarbokssidor): verklig traktor och grävmaskin (den
   senare omritad för hand som rena vektorer, `ritaGravmaskinRen`), litet
   flygplan på gräset, helikopter på stigen, helikopter i luften och
@@ -144,6 +143,12 @@ alla regler i första prompten (slutna ytor, jämna linjer, bultar som fyllda
 prickar, inga tunna dubbellinjer). Den är dålig på att ändra i efterhand:
 börja hellre om i en ny chatt med traktorsidan bifogad som stilförebild
 (så gjordes helikoptern), och be om strikt sidovy utan perspektiv.
+Traktorn snett framifrån gjordes i ägarens "Image Studio" (Gemini 3 Pro
+Image): Quality Pro, stilförval Photorealistic avvalt, 4:3, traktorsidan
+som referensbild och en negativ prompt mot skuggning, gråtoner, papper,
+ram och text. Den klarar perspektiv bra. Däckmönster ger många små celler
+(fylls direkt) — titta efter skymda delar, t.ex. bortre bakhjulet som
+syns under traktorn och ska ha däckfärg, inte markens.
 - `verktyg/linjer.py` med typ `'skarp'`: tröskar mitt i linjekanten efter
   lätt brusreducering och sparar i full upplösning; `vektor.py` spårar där
   och skalar ner banorna till 1200 px — mjuka kurvor och rätt linjebredd.
@@ -177,18 +182,15 @@ förlagans konturer. Mät upp delarna i förstorade utsnitt med tätt rutnät
 framför stickan, så stickan ritas först).
 
 ## Bildstil
-Alla bilder är ritade i en finare målarboksstil: tunna jämna konturer
-(`kant = 4–5`), verkliga proportioner (fordonen från sidan, skalade efter
-riktiga mått — se kommentaren över varje `ritaXxx`), fler och mindre ytor
-(fönster, dörrar, motordelar) är OK nu när man målar över i stället för att
-trycka, sol utan ansikte och en lugn bakgrund med tunna linjer
-(`faltBakgrund`). Hjälpare:
-`hjulSnett()` (däck i perspektiv), `sol()`, `moln()`. Tänk på vad som
+Alla bilder är i en finare målarboksstil: jämna konturer, verkliga
+proportioner, fler och mindre ytor (fönster, dörrar, motordelar) är OK nu
+när man målar över i stället för att trycka, sol utan ansikte och en lugn
+bakgrund (mjuka kullar, runda träd, sol bakom moln). Tänk på vad som
 skymmer vad.
 
 ## Lägga till en ny bild
 Helst som en ren sida från en bildgenerator, se "Rena sidor" ovan. Annars:
-1. Skriv `ritaXxx(ctx)` (se `ritaTraktorSnett`; börja med
+1. Skriv `ritaXxx(ctx)` (se `ritaGravmaskinRen`; börja med
    `stilSatt(ctx)`, `kant = 4`, bakgrunden och sedan `kant = 5`). Ge varje `form()` sin
    givna färg som tredje argument (lägg nya färger i `F`, lugna toner). Se
    **Bildstil** ovan. Detaljer (bultar, springor, galler, fogar) ritas som

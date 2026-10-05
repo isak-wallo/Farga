@@ -35,6 +35,7 @@ BILDER = {
     'gravmaskin':           ('skarp', (0, 0, 2000, 1493), 0),
     'flygplan':             ('skarp', (0, 0, 2000, 1493), 0),
     'helikopter':           ('skarp', (0, 0, 1200, 896), 0),
+    'traktor-snett':        ('skarp', (0, 0, 1200, 896), 0),
 }
 
 # Tillagda streck (i 1200x900-koordinater) som stänger glapp i förlagan,
