@@ -35,6 +35,12 @@ BILDER = {
     'flygplan':             ('skarp', (0, 0, 2000, 1493), 0),
     'helikopter':           ('skarp', (0, 0, 1200, 896), 0),
     'traktor-snett':        ('skarp', (0, 0, 1200, 896), 0),
+    # Perspektivsidor (Image Studio / Gemini). Grävmaskinen kom kvadratisk:
+    # beskärningen går utanför bilden och kanterna förlängs (se bredda).
+    'gravmaskin-snett':     ('skarp', (-171, 0, 1195, 1024), 0),
+    'helikopter-snett':     ('skarp', (0, 0, 1200, 896), 0),
+    'flygplan-snett':       ('skarp', (0, 0, 1200, 896), 0),
+    'propellerplan':        ('skarp', (0, 0, 2000, 1493), 0),
 }
 
 # Tillagda streck (i 1200x900-koordinater) som stänger glapp i förlagan,
@@ -91,6 +97,18 @@ def blyerts(f):
     return alpha
 
 
+def bredda(alpha, crop):
+    """Beskärning utanför bilden i sidled (för smal förlaga, t.ex. kvadratisk):
+    kantkolumnerna upprepas, så linjer som går ut i kanten (kullar, mark)
+    fortsätter vågrätt och ytorna förblir slutna."""
+    x0, y0, x1, y1 = crop
+    v, h = max(0, -x0), max(0, x1 - alpha.shape[1])
+    if v or h:
+        alpha = np.pad(alpha, ((0, 0), (v, h)), mode='edge')
+        crop = (x0 + v, y0, x1 + v, y1)
+    return alpha, crop
+
+
 def spara(alpha, crop, himmel, namn, hog=False):
     x0, y0, x1, y1 = crop
     a = Image.fromarray(alpha.astype(np.uint8)).crop(crop)
@@ -140,6 +158,7 @@ for arg in sys.argv[1:]:
     namn, fil = arg.split('=', 1)
     typ, crop, himmel = BILDER[namn]
     alpha = {'blyerts': blyerts, 'skarp': skarp}.get(typ, ren)(fil)
+    alpha, crop = bredda(alpha, crop)
     if namn in TILLAGG:
         k = (crop[2] - crop[0]) / 1200
         duk = Image.fromarray(alpha.astype(np.uint8))

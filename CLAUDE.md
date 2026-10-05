@@ -30,13 +30,12 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
   inte från början; när man målat `CLAWD_TRAFF` pixlar där han är (eller hans
   yta fylls i) poppar han upp med en liten studs, vinkar två gånger,
   blinkar och blir kvar. BÖRJA OM gömmer honom igen.
-- Bilder (i ordning): traktor från sidan, traktor snett framifrån (i
-  perspektiv), grävmaskin, flygplan på banan, helikopter på plattan (de
-  fem är rena AI-sidor i samma stil, se "Rena sidor" nedan), samt fem bilder gjorda direkt från förlagor ägaren skickade
-  (AI-genererade målarbokssidor): verklig grävmaskin (omritad för hand som rena vektorer,
-  `ritaGravmaskinRen`), litet
-  flygplan på gräset, helikopter på stigen, helikopter i luften och
-  flygplan vid flygfältet — se "Verkliga bilder" nedan.
+- Bilder (i ordning): fyra från sidan (traktor, grävmaskin, flygplan på
+  banan, helikopter på plattan), fem i perspektiv (traktor, grävmaskin,
+  helikopter, stort flygplan, propellerplan) — alla nio rena AI-sidor i
+  samma stil, se "Rena sidor" nedan — samt fyra äldre bilder spårade från
+  förlagor ägaren skickade: litet flygplan på gräset, helikopter på stigen,
+  helikopter i luften och flygplan vid flygfältet (se "Verkliga bilder").
 - Landskapslås, fullscreen, layoutlås/dö-yta, back-fälla och offline-SW är
   kopierade från Kludda — se Kluddas CLAUDE.md för detaljerna.
 - Hostas via GitHub Pages: `https://isak-wallo.github.io/Farga/`.
@@ -63,13 +62,12 @@ pushas, annars fastnar plattan på gammal cache.
   först konturerna på `lineCanvas`, sedan med `fargLage = true` på
   `colorCanvas` — då fyller `form(ctx, bygg, farg)` banan med sin färg och
   `linje()`/`prick()` gör ingenting. Färgerna finns i `F`. Bakgrunden
-  fyller himmel och kullar i färgläget. `tunnForm()` är
-  en liten sluten yta med tunn kant som inte raderar bakom sig (fönster).
+  fyller himmel och kullar i färgläget.
   `kant` styr formernas kantbredd (nollställs till `LW` före varje bild).
   Hjälpare: `form()` ritar en
   *sluten* form och raderar det som ligger bakom (destination-out), så
   överlappande delar skymmer varandra; `linje()` ritar ett löst streck;
-  `ellips()`, `trad()`, `grastuss()`, `sol()`, `moln()`;
+  `ellips()`, `sol()`, `moln()`;
   `stav()` (cylinder/stång) och `mangel()`
   (månghörning) lägger till banor i en `form()`. Ange banor **medurs** —
   blandade riktningar som överlappar i samma form kan ta ut varandra
@@ -148,7 +146,17 @@ Image): Quality Pro, stilförval Photorealistic avvalt, 4:3, traktorsidan
 som referensbild och en negativ prompt mot skuggning, gråtoner, papper,
 ram och text. Den klarar perspektiv bra. Däckmönster ger många små celler
 (fylls direkt) — titta efter skymda delar, t.ex. bortre bakhjulet som
-syns under traktorn och ska ha däckfärg, inte markens.
+syns under traktorn och ska ha däckfärg, inte markens. Övriga
+perspektivbilder har traktorn snett framifrån som referensbild. Image
+Studio kan slå på Photorealistic igen (blev ett färgfoto): välj Minimalist
+aktivt, börja prompten med "BLACK AND WHITE LINE DRAWING ONLY" och lägg
+"photo, photorealistic, 3D render" i den negativa prompten. Formatet 4:3
+hålls inte alltid: kom bilden kvadratisk breddas den i `linjer.py` med en
+beskärning utanför bilden (`bredda`, kantkolumnerna upprepas så kullarnas
+linjer fortsätter vågrätt); 16:9 är lättare (beskärs i sidled). Vanliga
+Gemini-chatten funkar också (propellerplanet) — skriv "4:3, wider than
+tall" och be om att hela fordonet ska synas med luft till kanterna, annars
+zoomar den in för mycket.
 - `verktyg/linjer.py` med typ `'skarp'`: tröskar mitt i linjekanten efter
   lätt brusreducering och sparar i full upplösning; `vektor.py` spårar där
   och skalar ner banorna till 1200 px — mjuka kurvor och rätt linjebredd.
@@ -171,16 +179,6 @@ syns under traktorn och ska ha däckfärg, inte markens.
   bakgrundens färg (kullen/himlen bakom), smala remsor på maskinen
   maskinens färg.
 
-### Rita om en förlaga för hand (`ritaGravmaskinRen`)
-När en förlaga är för plottrig (blyertsskissen) ritas den om med
-`form()`/`linje()` i bildens koordinater: lägg förlagan i 1200×900 bredvid ett
-rutnät, rita bara de yttre konturerna och de viktigaste delarna (rutor,
-hjul, cylindrar), hoppa över skuggning, reflexer och småstreck. Kontrollera
-genom att lägga de nya linjerna över förlagan (röda på grå) — de ska följa
-förlagans konturer. Mät upp delarna i förstorade utsnitt med tätt rutnät
-(10 px) och tänk på vad som ligger framför vad (bommens rundade spets ligger
-framför stickan, så stickan ritas först).
-
 ## Bildstil
 Alla bilder är i en finare målarboksstil: jämna konturer, verkliga
 proportioner, fler och mindre ytor (fönster, dörrar, motordelar) är OK nu
@@ -189,23 +187,18 @@ bakgrund (mjuka kullar, runda träd, sol bakom moln). Tänk på vad som
 skymmer vad.
 
 ## Lägga till en ny bild
-Helst som en ren sida från en bildgenerator, se "Rena sidor" ovan. Annars:
-1. Skriv `ritaXxx(ctx)` (se `ritaGravmaskinRen`; börja med
-   `stilSatt(ctx)`, `kant = 4`, bakgrunden och sedan `kant = 5`). Ge varje `form()` sin
-   givna färg som tredje argument (lägg nya färger i `F`, lugna toner). Se
-   **Bildstil** ovan. Detaljer (bultar, springor, galler, fogar) ritas som
-   `prick()` eller tunna `linje()`-streck med fria ändar så de inte blir
-   egna ytor. Slå ihop delar som hör ihop (t.ex. skopa och tänder, rör och
-   ljuddämpare) till en `form()`. Lägg bilden i
-   `PICTURES` med ett gömställe för Clawd (`clawd: {...}`). Bläddra-knapparna
-   hittar den automatiskt.
-2. Kontrollera i webbläsaren att alla ytor får rätt färg (inga läckor):
-   ytor som inte ska hänga ihop måste vara helt omslutna. Tänk på att en
-   `form()` som läggs ovanpå raderar linjerna under sig — se till att
-   ovanpåliggande delar själva stänger ytan.
-3. Bumpa `VERSION` i `sw.js`.
+1. Ta fram en ren sida från en bildgenerator (se "Rena sidor" ovan) och
+   lägg till den i `BILDER` i `verktyg/linjer.py` (typ `'skarp'`), kör
+   `linjer.py` och `vektor.py`. Jämför SVG:n med förlagan.
+2. Lägg en post i `PICTURES` (`rita: ritaFil`, `bild: '...'`, `farger`)
+   med ett gömställe för Clawd. Ta fram en punkt per yta ur appens `labels`
+   och ge varje yta sin färg (nya färger i `F`, lugna toner).
+3. Fyll alla ytor och titta på förstorade utsnitt: varje yta ska ha rätt
+   färg och Clawd ska kika fram. Lägg SVG:n i `ASSETS` och bumpa `VERSION`
+   i `sw.js`.
 
-## Fallgropar när man ritar
+## Fallgropar när man ritar (gäller främst kodritade bilder; inga finns kvar
+utom bakgrunden i de äldre spårade bilderna)
 - Ett löst streck som rör två olika konturer (eller bildkanten i båda
   ändar) delar upp ytan i fler fält. Ge dem fria ändar. Det gäller även
   bakgrundsdetaljer (fåror, hjulspår) som går bakom maskinen.

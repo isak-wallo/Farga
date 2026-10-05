@@ -10,7 +10,7 @@ Syskon-app till [Kludda](https://github.com/isak-wallo/Kludda) (fri ritning) och
 Öppna **https://isak-wallo.github.io/Farga/** i Chrome på plattan och välj
 "Lägg till på hemskärm" för att installera den (fungerar sedan offline).
 
-Bilder: två traktorer, en grävmaskin, ett flygplan på banan, en helikopter, en verklig grävmaskin, två flygplan och två helikoptrar (bläddra med ◀ ▶, håll BÖRJA OM två
+Bilder: traktor, grävmaskin, stort flygplan och helikopter både från sidan och i perspektiv, ett propellerplan, samt två äldre flygplan och två helikoptrar (bläddra med ◀ ▶, håll BÖRJA OM två
 gånger för att sudda bilden). Fler läggs till i
 `PICTURES` i `app.js`.
 
