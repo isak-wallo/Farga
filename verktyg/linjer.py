@@ -35,6 +35,8 @@ BILDER = {
     'flygplan':             ('skarp', (0, 0, 2000, 1493), 0),
     'helikopter':           ('skarp', (0, 0, 2000, 1500), 0),
     'traktor-snett':        ('skarp', (0, 0, 1200, 896), 0),
+    'dumper':               ('skarp', (0, 0, 2000, 1500), 0),
+    'brandbil':             ('skarp', (0, 0, 2000, 1500), 0),
     # Perspektivsidor (Image Studio / Gemini). Grävmaskinen kom kvadratisk:
     # beskärningen går utanför bilden och kanterna förlängs (se bredda).
     'gravmaskin-snett':     ('skarp', (-171, 0, 1195, 1024), 0),
@@ -48,6 +50,7 @@ BILDER = {
 # en egen yta i stället för en del av kullen.
 TILLAGG = {
     'traktor': [[(185, 491), (214, 503)]],
+    'brandbil': [[(458, 893), (436, 904)]],
 }
 
 

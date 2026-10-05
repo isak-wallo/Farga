@@ -1,6 +1,6 @@
 // Höj VERSION (v1 -> v2 osv.) varje gång du laddar upp nya filer,
 // så hämtas och cachas den nya versionen säkert.
-const VERSION = 'v27';
+const VERSION = 'v28';
 const CACHE = 'farga-' + VERSION;
 
 const ASSETS = [
@@ -16,6 +16,8 @@ const ASSETS = [
   './bilder/flygplan.svg',
   './bilder/helikopter.svg',
   './bilder/traktor-snett.svg',
+  './bilder/brandbil.svg',
+  './bilder/dumper.svg',
   './bilder/gravmaskin-snett.svg',
   './bilder/helikopter-snett.svg',
   './bilder/flygplan-snett.svg',
