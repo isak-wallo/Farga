@@ -780,13 +780,18 @@ document.addEventListener('DOMContentLoaded', () => {
             [F.morkstal]: [[223, 484], [308, 579], [306, 525], [283, 619], [531, 511], [610, 515], [523, 579], [478, 615], [455, 487]],
             [F.dack]: [[351, 734], [338, 733], [360, 729], [364, 714], [462, 686], [471, 677], [445, 682], [685, 722], [666, 717], [694, 712], [694, 695]] },
           clawd: { x: 588, y: 513, s: 0.26, ytor: [[589, 472]] } },       // i sidorutan
-        { namn: 'Litet flygplan', rita: ritaFlygplanLitet, bild: 'bilder/flygplan-litet.svg',
+        { namn: 'Litet flygplan', rita: ritaFlygplanLitet, bild: 'bilder/flygplan-litet.svg', helaYtor: true,
           clawd: { x: 455, y: 508, s: 0.4, ytor: [[455, 440]] } },         // i cockpitrutan
-        { namn: 'Helikopter på stigen', rita: ritaHelikopterStig, bild: 'bilder/helikopter-stig.svg',
+        { namn: 'Helikopter på stigen', rita: ritaHelikopterStig, bild: 'bilder/helikopter-stig.svg', helaYtor: true,
+          farger: { [F.rod]: [[976, 581], [980, 463]], [F.stal]: [[1012, 484], [1011, 470]] },
+          tillagg: [[352, 106, 360, 118, 363, 131, 358, 143, 350, 150],
+                    [524, 222, 553, 228], [614, 230, 650, 231, 700, 235, 745, 239],
+                    [113, 774, 60, 800, 0, 829], [301, 721, 327, 714]],
           clawd: { x: 590, y: 585, s: 0.32, ytor: [[590, 500]] } },        // i dörrens ruta
-        { namn: 'Helikopter i luften', rita: ritaHelikopterLuft, bild: 'bilder/helikopter-luft.svg',
+        { namn: 'Helikopter i luften', rita: ritaHelikopterLuft, bild: 'bilder/helikopter-luft.svg', helaYtor: true,
           clawd: { x: 597, y: 664, s: 0.28, ytor: [[597, 600]] } },        // i sidorutan
-        { namn: 'Flygplan vid fältet', rita: ritaFlygplanFalt, bild: 'bilder/flygplan-falt.svg',
+        { namn: 'Flygplan vid fältet', rita: ritaFlygplanFalt, bild: 'bilder/flygplan-falt.svg', helaYtor: true,
+          tillagg: [[1184, 553, 1200, 558], [1186, 563, 1200, 563]],
           clawd: { x: 590, y: 585, s: 0.24, ytor: [[590, 540]] } }         // i sidorutan
     ];
 
@@ -890,7 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // färgas pixel för pixel efter kartan, städad av stadaBlandade().
     const DOMINANS = 0.75;
     const BLANDAD_MIN = 30000;     // mindre ytor tar alltid sin dominerande färg
-    function pickRegionColors() {
+    function pickRegionColors(pic) {
         const n = regionSize.length;
         facitPx = new Uint32Array(cCtx.getImageData(0, 0, PAPER_W, PAPER_H).data.buffer);
         const px = facitPx;
@@ -920,6 +925,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         regionColor = cand;
         regionBlandad = new Uint8Array(n);
+        if (pic && pic.helaYtor) {
+            helaYtor(pic.farger);
+            return;
+        }
         let nagonBlandad = false;
         for (let l = 1; l < n; l++) {
             const tydlig = antal[l] >= regionSize[l] * DOMINANS && regionSize[l] - antal[l] < REST_MAX &&
@@ -930,6 +939,123 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         if (nagonBlandad) stadaBlandade();
+    }
+
+    // `helaYtor` (äldre spårade bilder): varje yta får en enda färg — den
+    // som täcker flest av ytans pixlar i färgkartan — så färgerna följer
+    // linjerna. Bara de riktigt stora ytorna (himmel/mark som läcker ihop
+    // genom glapp i linjerna, STOR_YTA) färgas pixel för pixel, och där tas
+    // fordonets färger bort ur kartan först (det är kartans kanter som
+    // slunkit ut utanför fordonets linjer) och ersätts med närmaste
+    // bakgrundsfärg. `farger` (punkter) rättar enstaka ytor.
+    const STOR_YTA = 100000;
+    function helaYtor(farger) {
+        const n = regionSize.length, px = facitPx, W = PAPER_W, N = labels.length;
+        const rakna = [];
+        for (let i = 0; i < N; i++) {
+            const l = labels[i];
+            if (l <= 0) continue;
+            let m = rakna[l];
+            if (!m) rakna[l] = m = new Map();
+            m.set(px[i], (m.get(px[i]) || 0) + 1);
+        }
+        let nagonStor = false;
+        for (let l = 1; l < n; l++) {
+            let bast = 0, flest = -1;
+            if (rakna[l]) rakna[l].forEach((k, c) => { if (k > flest) { flest = k; bast = c; } });
+            regionColor[l] = bast;
+            if (regionSize[l] >= STOR_YTA && flest < regionSize[l] * 0.97) {
+                regionBlandad[l] = 1;
+                nagonStor = true;
+            }
+        }
+        if (nagonStor) {
+            const ko = new Int32Array(N), klar = new Uint8Array(N);
+            let svans = 0;
+            for (let i = 0; i < N; i++) {
+                const l = labels[i];
+                if (l > 0 && regionBlandad[l] && BAKGRUND_F.has(px[i])) { klar[i] = 1; ko[svans++] = i; }
+            }
+            let huvud = 0;
+            while (huvud < svans) {
+                const i = ko[huvud++], l = labels[i], x = i % W;
+                const grannar = [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, i - W, i + W];
+                for (const q of grannar) {
+                    if (q < 0 || q >= N || klar[q] || labels[q] !== l) continue;
+                    px[q] = px[i]; klar[q] = 1; ko[svans++] = q;
+                }
+            }
+            delaStoraYtor();
+        }
+        if (!farger) return;
+        Object.keys(farger).forEach(hex => {
+            const c = hexTillInt(hex);
+            farger[hex].forEach(([x, y]) => {
+                const l = labels[y * W + x];
+                if (l > 0) { regionColor[l] = c; regionBlandad[l] = 0; }
+                else console.warn('Färgpunkt på en linje:', hex, x, y);
+            });
+        });
+    }
+
+    // De stora läckande ytorna i `helaYtor`: linjerna görs tillfälligt GLAPP px
+    // tjockare så att ytan delas i delar. En del där en färg dominerar
+    // (DEL_DOMINANS) får bara den färgen; annars behålls kartan. Pixlarna
+    // närmast linjerna får sedan färg från närmaste del (utan hänsyn till
+    // kartan), så gränserna hamnar på linjerna och bara mitt i glappen där
+    // det inte finns någon linje.
+    const DEL_DOMINANS = 0.85;
+    function delaStoraYtor() {
+        const W = PAPER_W, H = PAPER_H, N = labels.length, px = facitPx;
+        const linjeAvst = new Float32Array(N).fill(1e9);
+        // avstånd till närmaste linje (två svep, schackbrädesavstånd räcker)
+        for (let i = 0; i < N; i++) if (labels[i] === 0) linjeAvst[i] = 0;
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+            const i = y * W + x; let d = linjeAvst[i];
+            if (x > 0) d = Math.min(d, linjeAvst[i - 1] + 1);
+            if (y > 0) d = Math.min(d, linjeAvst[i - W] + 1, x > 0 ? linjeAvst[i - W - 1] + 1.4 : 1e9, x < W - 1 ? linjeAvst[i - W + 1] + 1.4 : 1e9);
+            linjeAvst[i] = d;
+        }
+        for (let y = H - 1; y >= 0; y--) for (let x = W - 1; x >= 0; x--) {
+            const i = y * W + x; let d = linjeAvst[i];
+            if (x < W - 1) d = Math.min(d, linjeAvst[i + 1] + 1);
+            if (y < H - 1) d = Math.min(d, linjeAvst[i + W] + 1, x < W - 1 ? linjeAvst[i + W + 1] + 1.4 : 1e9, x > 0 ? linjeAvst[i + W - 1] + 1.4 : 1e9);
+            linjeAvst[i] = d;
+        }
+        const klar = new Uint8Array(N), del = new Uint8Array(N), stack = new Int32Array(N);
+        for (let seed = 0; seed < N; seed++) {
+            const l = labels[seed];
+            if (l <= 0 || !regionBlandad[l] || del[seed] || linjeAvst[seed] <= GLAPP) continue;
+            const medlem = [];
+            let sp = 0;
+            stack[sp++] = seed; del[seed] = 1;
+            while (sp) {
+                const i = stack[--sp];
+                medlem.push(i);
+                const x = i % W;
+                const grannar = [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, i - W, i + W];
+                for (const q of grannar) {
+                    if (q < 0 || q >= N || del[q] || labels[q] !== l || linjeAvst[q] <= GLAPP) continue;
+                    del[q] = 1; stack[sp++] = q;
+                }
+            }
+            const rakna = new Map();
+            for (const i of medlem) rakna.set(px[i], (rakna.get(px[i]) || 0) + 1);
+            let bast = 0, flest = -1;
+            rakna.forEach((k, c) => { if (k > flest) { flest = k; bast = c; } });
+            const enhetlig = flest >= medlem.length * DEL_DOMINANS;
+            for (const i of medlem) { if (enhetlig) px[i] = bast; klar[i] = 1; }
+        }
+        let huvud = 0, svans = 0;
+        for (let i = 0; i < N; i++) if (klar[i]) stack[svans++] = i;
+        while (huvud < svans) {
+            const i = stack[huvud++], l = labels[i], x = i % W;
+            const grannar = [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, i - W, i + W];
+            for (const q of grannar) {
+                if (q < 0 || q >= N || klar[q] || labels[q] !== l) continue;
+                px[q] = px[i]; klar[q] = 1; stack[svans++] = q;
+            }
+        }
     }
 
     // Färger från punkter: `farger` = { färg: [[x, y], ...] }, varje punkt
@@ -1309,6 +1435,20 @@ document.addEventListener('DOMContentLoaded', () => {
         lCtx.clearRect(0, 0, PAPER_W, PAPER_H);
         kant = LW;
         rita(lCtx, pic);
+        // `tillagg`: korta streck som stänger glapp i en spårad bilds linjer
+        if (pic.tillagg) {
+            lCtx.save();
+            lCtx.strokeStyle = LINJEFARG;
+            lCtx.lineWidth = 5;
+            lCtx.lineCap = lCtx.lineJoin = 'round';
+            pic.tillagg.forEach(p => {
+                lCtx.beginPath();
+                lCtx.moveTo(p[0], p[1]);
+                for (let k = 2; k < p.length; k += 2) lCtx.lineTo(p[k], p[k + 1]);
+                lCtx.stroke();
+            });
+            lCtx.restore();
+        }
         cCtx.setTransform(1, 0, 0, 1, 0, 0);
         cCtx.clearRect(0, 0, PAPER_W, PAPER_H);
         fargLage = true;
@@ -1316,8 +1456,8 @@ document.addEventListener('DOMContentLoaded', () => {
         rita(cCtx, pic);
         fargLage = false;
         labelRegions();
-        if (pic.farger) fargaFranPunkter(pic.farger);
-        else pickRegionColors();
+        if (pic.farger && !pic.helaYtor) fargaFranPunkter(pic.farger);
+        else pickRegionColors(pic);
         fades.length = 0;
         const saved = pictureState[index];
         prepClawd(PICTURES[index].clawd, !!(saved && saved.clawd));

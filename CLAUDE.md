@@ -126,6 +126,17 @@ pushas, annars fastnar plattan på gammal cache.
   i bakgrundsytor (`BAKGRUND_F`) fylls de från grannarna. En yta/del får
   bara en enda färg om den dominerar (`DOMINANS`), resten är litet
   (`REST_MAX`) och den inte innehåller skyddad bakgrundsfärg (`SKYDDAD_MIN`).
+- **`helaYtor: true`** (alla fyra äldre bilder): varje yta får en enda
+  färg (den som täcker flest pixlar i kartan, `helaYtor()`), så färgen
+  alltid stannar inom linjerna. Bara de riktigt stora läckande ytorna
+  (`STOR_YTA`, himmel/mark/stig som hänger ihop genom glapp) färgas pixel
+  för pixel i `delaStoraYtor()`: fordonsfärger tas bort ur kartan där,
+  linjerna görs `GLAPP` px tjockare, varje del som domineras av en färg
+  får bara den, och pixlarna närmast linjerna fylls från närmaste del.
+  Glapp som ändå läcker stängs med korta streck i `tillagg: [[x1, y1, x2,
+  y2, …], …]` (ritas på linjelagret före numreringen), och enstaka ytor
+  rättas med `farger`-punkter. Hitta glappen genom att leta efter
+  färggränser i kartan som ligger mer än 8 px från närmaste linje.
 - **Kartan ska följa linjerna.** Mät upp linjernas lägen längs kolumner
   (skriv ut var alfa > 128 längs x = 0, 25, 50 …) och lägg kartans
   hörnpunkter efter dem, i stället för att gissa från en översiktsbild.
@@ -180,6 +191,11 @@ zoomar den in för mycket.
   maskinens färg.
 
 ## Bildstil
+**Önskemål för nya bilder:** mer tecknat och barnsligt, lite mindre
+verklighetstroget — som det blå flygplanet på gräset, inte som de mer
+detaljerade gula och röd-vita planen. Enkla runda former, färre
+detaljer (inga nitar, ventiler, ekrar).
+
 Alla bilder är i en finare målarboksstil: jämna konturer, verkliga
 proportioner, fler och mindre ytor (fönster, dörrar, motordelar) är OK nu
 när man målar över i stället för att trycka, sol utan ansikte och en lugn
