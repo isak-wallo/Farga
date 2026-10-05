@@ -1,6 +1,6 @@
 // Höj VERSION (v1 -> v2 osv.) varje gång du laddar upp nya filer,
 // så hämtas och cachas den nya versionen säkert.
-const VERSION = 'v33';
+const VERSION = 'v34';
 const CACHE = 'farga-' + VERSION;
 
 const ASSETS = [
