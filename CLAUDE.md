@@ -14,8 +14,9 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
   barnet kan inte välja färg.
 - Man **målar fritt med fingret** (alla fingrar, `PENSEL` = radie i
   bildpixlar). Penseln "målar fram" färgen på de ytor den passerar. När
-  `FYLL_ANDEL` (80 %) av en yta är målad fylls resten i av sig själv och
-  tonas mjukt fram (`FADE_MS`).
+  `FYLL_ANDEL` (95 %) av en yta är målad fylls resten i av sig själv: färgen
+  rinner ut från det målade med en mjuk kant (`startFade`/`ritaFade`,
+  `FADE_BAND`, 0,6–1,6 s beroende på hur långt den ska rinna).
 - Panelen har fyra knappar, till höger i liggande läge (en rad nederst
   i stående): **◀** föregående bild, **▶** nästa bild (agerar direkt på
   `touchstart` med `stopPropagation`), **SPARA** (håll 1 s → bilden laddas
@@ -80,8 +81,11 @@ pushas, annars fastnar plattan på gammal cache.
   räknas som yta så färgen går in under linjens anti-aliasade kant.
 - **Måla**: `stamp`/`stroke` skriver områdets färg direkt i `fillPx` för
   omålade pixlar och räknar `regionPainted`. `checkTouched` startar
-  `startFade` när andelen nått `FYLL_ANDEL` (toningen ritas i `render`, och
-  `commitRegion` skriver in resten när den är klar). Ytor under
+  `startFade` när andelen nått `FYLL_ANDEL`. `startFade` räknar avståndet
+  från det målade till varje omålad pixel (8 grannar, 5/7-vikter i en
+  hink-kö, så kanten blir rund) och `ritaFade` flyttar fram färgens kant
+  varje frame, med en halvgenomskinlig rand; `commitRegion` skriver in
+  resten när den är klar. Ytor under
   `MIN_REGION` (små celler mellan detaljstreck) fylls direkt när penseln
   nuddar dem. Ritning sker en gång per frame (`requestRender`, `dirty`).
 

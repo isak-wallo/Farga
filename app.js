@@ -1570,16 +1570,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = performance.now();
         for (let k = fades.length - 1; k >= 0; k--) {
             const f = fades[k];
-            const t = (now - f.start) / FADE_MS;
-            if (t >= 1) {
+            if (ritaFade(f, now)) {
                 commitRegion(f.id);
                 fades.splice(k, 1);
                 continue;
             }
-            vCtx.globalAlpha = t * t * (3 - 2 * t);   // mjuk in/ut
             vCtx.drawImage(f.canvas, f.x, f.y);
         }
-        vCtx.globalAlpha = 1;
         if (dirty) {    // commitRegion ovan kan ha målat klart en yta
             fCtx.putImageData(fillImage, 0, 0, dirty.x0, dirty.y0,
                 dirty.x1 - dirty.x0 + 1, dirty.y1 - dirty.y0 + 1);
@@ -1606,10 +1603,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Måla ---
     // Fingret är en pensel som målar fram ytornas givna färger (den kan inte
     // välja färg). När FYLL_ANDEL av en yta är målad fylls resten i av sig
-    // själv och tonas mjukt fram (FADE_MS).
+    // själv: färgen rinner mjukt ut från det målade (startFade/ritaFade).
     const PENSEL = 31;         // penselns radie i bildpixlar
-    const FYLL_ANDEL = 0.8;
-    const FADE_MS = 700;
+    const FYLL_ANDEL = 0.95;
+    const FADE_MS = 600;        // kortaste ifyllnadstid …
+    const FADE_MAX_MS = 1600;   // … och längsta
+    const FADE_PER_PX = 12;     // ms per pixel som färgen ska rinna
+    const FADE_BAND = 14;       // bredd på den mjuka kanten (px)
     const fades = [];          // { id, canvas, x, y, start }
     const touched = new Set(); // ytor som penseln nuddat i den här rörelsen
 
@@ -1683,15 +1683,99 @@ document.addEventListener('DOMContentLoaded', () => {
         const img = ctx.createImageData(w, h);
         const px = new Uint32Array(img.data.buffer);
         const col = regionColor[id], blandad = regionBlandad[id];
+        // Färgen rinner ut från det som redan är målat: bredden-först genom
+        // de omålade pixlarna, i avståndsordning (ordning + avstånd sparas).
+        const dist = new Int32Array(w * h).fill(-1);
+        const ordning = [];
         for (let y = 0; y < h; y++) {
             const row = (y0 + y) * W + x0;
             for (let x = 0; x < w; x++) {
                 const i = row + x;
-                if (labels[i] === id && fillPx[i] === PAPER) px[y * w + x] = blandad ? facitPx[i] : col;
+                if (labels[i] === id && fillPx[i] !== PAPER) dist[y * w + x] = 0;
             }
         }
-        ctx.putImageData(img, 0, 0);
-        fades.push({ id, canvas: c, x: x0, y: y0, start: performance.now() });
+        for (let k = 0; k < w * h; k++) {
+            if (dist[k] !== 0) continue;
+            const x = k % w;
+            if ((x > 0 && dist[k - 1] < 0) || (x < w - 1 && dist[k + 1] < 0) ||
+                (k >= w && dist[k - w] < 0) || (k < w * h - w && dist[k + w] < 0)) ordning.push(k);
+        }
+        const fargAv = (k) => {
+            const i = (y0 + ((k / w) | 0)) * W + x0 + (k % w);
+            return blandad ? facitPx[i] : col;
+        };
+        // Avstånd med 8 grannar (5 rakt, 7 snett) i en hink-kö, så att
+        // kanten blir rund i stället för spetsig. Avståndet räknas i femtedels px.
+        const hinkar = [ordning.slice()];
+        ordning.length = 0;
+        for (let d = 0; d < hinkar.length; d++) {
+            const hink = hinkar[d];
+            if (!hink) continue;
+            for (let n = 0; n < hink.length; n++) {
+                const k = hink[n];
+                if (dist[k] !== d) continue;           // redan nådd kortare väg
+                ordning.push(k);
+                const x = k % w;
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        if (!dx && !dy) continue;
+                        const xx = x + dx;
+                        if (xx < 0 || xx >= w) continue;
+                        const q = k + dy * w + dx;
+                        if (q < 0 || q >= w * h) continue;
+                        const nd = d + (dx && dy ? 7 : 5);
+                        if (dist[q] !== -1 && dist[q] <= nd) continue;
+                        const i = (y0 + ((q / w) | 0)) * W + x0 + xx;
+                        if (labels[i] !== id || (dist[q] === 0)) continue;
+                        dist[q] = nd;
+                        (hinkar[nd] || (hinkar[nd] = [])).push(q);
+                    }
+                }
+            }
+            hinkar[d] = null;
+        }
+        for (let k = 0; k < w * h; k++) if (dist[k] > 0) dist[k] = (dist[k] / 5) | 0;
+        // Bara de omålade pixlarna ska tonas fram (ordning börjar med kanten av det målade)
+        const kvar = ordning.filter(k => dist[k] > 0);
+        // Omålade pixlar som inte nås (ingen målad granne) läggs sist
+        for (let y = 0; y < h; y++) {
+            const row = (y0 + y) * W + x0;
+            for (let x = 0; x < w; x++) {
+                const k = y * w + x;
+                if (dist[k] === -1 && labels[row + x] === id && fillPx[row + x] === PAPER) kvar.push(k);
+            }
+        }
+        const maxD = kvar.length ? Math.max(1, dist[kvar[kvar.length - 1]]) : 1;
+        const tid = Math.min(FADE_MAX_MS, Math.max(FADE_MS, 300 + maxD * FADE_PER_PX));
+        fades.push({ id, canvas: c, ctx, img, px, x: x0, y: y0, w, kvar, dist, maxD, fargAv,
+            klara: 0, start: performance.now(), tid });
+    }
+
+    // Flyttar fram färgens kant: pixlar bakom kanten blir helt täckta, de i
+    // kantbandet (FADE_BAND px) halvgenomskinliga, så kanten blir mjuk.
+    function ritaFade(f, now) {
+        const t = Math.min(1, (now - f.start) / f.tid);
+        const p = 1 - (1 - t) * (1 - t);                // snabb start, mjukt slut
+        const front = p * (f.maxD + FADE_BAND);
+        let x0 = f.w, y0 = 1e9, x1 = -1, y1 = -1;
+        let k = f.klara;
+        for (; k < f.kvar.length; k++) {
+            const q = f.kvar[k], d = f.dist[q] < 0 ? f.maxD : f.dist[q];
+            if (d > front) break;
+            const a = Math.min(1, (front - d) / FADE_BAND);
+            const c = f.fargAv(q);
+            f.px[q] = ((Math.round(a * 255) << 24) | (c & 0xFFFFFF)) >>> 0;
+            const x = q % f.w, y = (q / f.w) | 0;
+            if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+        }
+        // pixlarna längst bak i bandet är nu helt täckta och behöver inte röras igen
+        while (f.klara < k) {
+            const q = f.kvar[f.klara], d = f.dist[q] < 0 ? f.maxD : f.dist[q];
+            if (front - d < FADE_BAND) break;
+            f.klara++;
+        }
+        if (x1 >= 0) f.ctx.putImageData(f.img, 0, 0, x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+        return t >= 1;
     }
 
     // Fyller hela ytan i fillPx (direkt, utan toning).
