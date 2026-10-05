@@ -45,7 +45,10 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
   kopierade från Kludda — se Kluddas CLAUDE.md för detaljerna.
 - Ikonen (`icon-192.png`, `icon-512.png`, maskable) är dumpern ur sin
   färdigmålade bild, utklippt utan bakgrund på himmelsblått, inom 72 % av
-  rutan så den klarar runda masker.
+  rutan så den klarar runda masker. I `ikoner/` finns samma sak för
+  helikoptern, dumpern och sopbilen (`*-512.png`) och bara fordonen med
+  genomskinlig bakgrund (`*-utklipp.png`), sparade till annat bruk
+  (inte i `ASSETS`).
 - Hostas via GitHub Pages: `https://isak-wallo.github.io/Farga/`.
   **Inget byggsteg** — commit + push är driftsättning.
 
