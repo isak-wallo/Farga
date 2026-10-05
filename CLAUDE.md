@@ -32,9 +32,9 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
   blinkar och blir kvar. BÖRJA OM gömmer honom igen.
 - Bilder (i ordning): traktor från sidan, traktor snett framifrån (i
   perspektiv), grävmaskin, flygplan på banan, helikopter på plattan (de
-  fem är rena AI-sidor i samma stil, se "Rena sidor" nedan), samt sex bilder gjorda direkt från förlagor ägaren skickade
-  (AI-genererade målarbokssidor): verklig traktor och grävmaskin (den
-  senare omritad för hand som rena vektorer, `ritaGravmaskinRen`), litet
+  fem är rena AI-sidor i samma stil, se "Rena sidor" nedan), samt fem bilder gjorda direkt från förlagor ägaren skickade
+  (AI-genererade målarbokssidor): verklig grävmaskin (omritad för hand som rena vektorer,
+  `ritaGravmaskinRen`), litet
   flygplan på gräset, helikopter på stigen, helikopter i luften och
   flygplan vid flygfältet — se "Verkliga bilder" nedan.
 - Landskapslås, fullscreen, layoutlås/dö-yta, back-fälla och offline-SW är
@@ -110,7 +110,7 @@ pushas, annars fastnar plattan på gammal cache.
   PICTURES-posten har `bild: '...'`; filen laddas i förväg (`pic.img`, SVG:n
   måste ha width/height) och `loadPicture` väntar på den. Lägg nya filer i
   `ASSETS` i `sw.js`.
-- Ritfunktionen (t.ex. `ritaTraktorVerklig`, `ritaHelikopterLuft`) ritar
+- Ritfunktionen (t.ex. `ritaFlygplanLitet`, `ritaHelikopterLuft`) ritar
   bilden på `lineCanvas` (och kan lägga till egna `moln()`/`sol()` i
   tillagd himmel), och i färgläget en **grov färgkarta** (`fyllPoly`,
   `fyllEllips` i bildens koordinater, rutnätsbilden hjälper) som ungefär

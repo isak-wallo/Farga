@@ -1,7 +1,7 @@
 """Gör om förlagor (målarbokssidor) till konturlager för Färga.
 
 Användning:  python3 verktyg/linjer.py namn=FÖRLAGA.png [namn=FÖRLAGA.png ...]
-t.ex.        python3 verktyg/linjer.py traktor-verklig=traktor.png
+t.ex.        python3 verktyg/linjer.py helikopter=heli.jpg
 
 Varje namn måste finnas i BILDER nedan (beskärning m.m.). Skriver
 bilder/NAMN.png (1200x900, genomskinlig med mörkgrå linjer) och en
@@ -23,7 +23,6 @@ LINJE = (0x3a, 0x3a, 0x44)
 # upplösning (vektor.py skalar ner banorna) så kurvorna blir mjuka.
 # Beskärningen ska vara ungefär 4:3 efter att himlen lagts till.
 BILDER = {
-    'traktor-verklig':      ('ren', (80, 190, 944, 838), 0),
     # (gravmaskin-verklig är numera omritad för hand i app.js, ritaGravmaskinRen)
     'gravmaskin-verklig':   ('blyerts', (69, 145, 956, 810), 0),
     'flygplan-litet':       ('ren', (0, 258, 784, 846), 0),

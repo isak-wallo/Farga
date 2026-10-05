@@ -393,76 +393,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!fargLage) ctx.drawImage(pic.img, 0, 0);
     }
 
-    function ritaTraktorVerklig(ctx, pic) {
-        if (!fargLage) { ctx.drawImage(pic.img, 0, 0); return; }
-        // Mark, himmel och bortre kulle
-        ctx.fillStyle = F.akerkulle;
-        ctx.fillRect(0, 0, PAPER_W, PAPER_H);
-        fyllPoly(ctx, F.himmel, [[0, 0], [1200, 0], [1200, 268], [1170, 272], [950, 278], [940, 290],
-            [440, 262], [300, 236], [200, 204], [100, 186], [0, 182]]);
-        fyllPoly(ctx, F.fjarrkulle, [[0, 182], [100, 186], [200, 204], [300, 236], [440, 262], [440, 332],
-            [330, 332], [150, 286], [0, 272]]);
-        // Träd, buskar och ladan
-        fyllEllips(ctx, F.trad, 110, 192, 58, 48);
-        fyllEllips(ctx, F.trad, 188, 238, 30, 40);
-        fyllEllips(ctx, F.trad, 90, 405, 62, 26);
-        fyllEllips(ctx, F.trad, 1000, 200, 28, 70);
-        fyllEllips(ctx, F.trad, 1152, 148, 24, 16);
-        fyllEllips(ctx, F.trad, 965, 245, 30, 22);
-        fyllEllips(ctx, F.trad, 1150, 262, 30, 14);
-        fyllPoly(ctx, F.morkrod, [[1020, 195], [1068, 152], [1110, 190], [1172, 168], [1172, 275], [1020, 278]]);
-        fyllPoly(ctx, F.ljusstal, [[1040, 150], [1075, 148], [1172, 158], [1172, 170], [1110, 185], [1068, 152]]);
-        fyllPoly(ctx, F.flygkropp, [[1045, 235], [1095, 235], [1095, 278], [1045, 278]]);
-        fyllEllips(ctx, F.glas, 1072, 198, 12, 14);
-
-        // Hjulen
-        fyllEllips(ctx, F.dack, 205, 705, 105, 135);
-        fyllEllips(ctx, F.falg, 238, 712, 48, 68);
-        fyllEllips(ctx, F.dack, 565, 762, 120, 142);
-        fyllEllips(ctx, F.falg, 582, 765, 62, 88);
-        fyllEllips(ctx, F.stal, 582, 762, 22, 34);
-        fyllEllips(ctx, F.dack, 940, 605, 180, 225);
-        fyllEllips(ctx, F.falg, 992, 612, 80, 120);
-        fyllEllips(ctx, F.stal, 965, 612, 28, 42);
-
-        // Ram, steg, axel, stötfångare
-        fyllPoly(ctx, F.morkstal, [[600, 540], [700, 540], [712, 720], [650, 722], [600, 640]]);
-        fyllPoly(ctx, F.stal, [[690, 548], [762, 545], [778, 702], [720, 706]]);
-        fyllPoly(ctx, F.morkstal, [[250, 688], [470, 660], [482, 722], [262, 722]]);
-        fyllPoly(ctx, F.morkstal, [[205, 612], [402, 624], [407, 702], [214, 692]]);
-
-        // Huv, motorrum, grill och strålkastare
-        fyllPoly(ctx, F.rod, [[226, 400], [300, 345], [600, 318], [624, 345], [626, 545], [470, 602],
-            [240, 618], [228, 520]]);
-        fyllPoly(ctx, F.morkstal, [[482, 470], [520, 450], [612, 468], [615, 600], [480, 606]]);
-        fyllPoly(ctx, F.stal, [[238, 415], [290, 410], [292, 592], [245, 590]]);
-        fyllPoly(ctx, F.stal, [[300, 412], [356, 418], [358, 600], [305, 600]]);
-        fyllEllips(ctx, F.ljusstal, 205, 503, 25, 26);
-        fyllEllips(ctx, F.glas, 205, 503, 14, 15);
-        fyllEllips(ctx, F.ljusstal, 420, 520, 42, 44);
-        fyllEllips(ctx, F.glas, 422, 522, 25, 29);
-
-        // Avgasrör
-        fyllPoly(ctx, F.stal, [[343, 92], [372, 86], [392, 112], [392, 190], [412, 195], [412, 332],
-            [354, 332], [354, 190], [343, 122]]);
-
-        // Stänkskärm
-        fyllPoly(ctx, F.rod, [[758, 525], [790, 420], [860, 358], [960, 343], [1042, 368], [1072, 410],
-            [1060, 428], [1000, 396], [920, 386], [862, 420], [812, 482], [792, 548]]);
-
-        // Hytt: ram, tak, rutor
-        fyllPoly(ctx, F.rod, [[458, 92], [942, 98], [946, 332], [862, 348], [628, 545], [468, 322]]);
-        fyllPoly(ctx, F.rod, [[628, 470], [800, 462], [796, 546], [628, 552]]);
-        fyllPoly(ctx, F.ljusstal, [[458, 58], [520, 36], [700, 20], [930, 66], [942, 106], [466, 98]]);
-        fyllEllips(ctx, F.sol, 680, 46, 20, 10);
-        fyllEllips(ctx, F.sol, 492, 70, 18, 10);
-        fyllPoly(ctx, F.glas, [[494, 104], [692, 98], [692, 304], [490, 304]]);
-        fyllPoly(ctx, F.glas, [[708, 100], [844, 100], [848, 304], [704, 304]]);
-        fyllPoly(ctx, F.glas, [[852, 108], [922, 110], [926, 302], [856, 302]]);
-        fyllPoly(ctx, F.glas, [[700, 360], [796, 360], [796, 506], [702, 506]]);
-        fyllPoly(ctx, F.glas, [[630, 344], [666, 344], [666, 512], [632, 512]]);
-    }
-
     // Litet propellerplan på gräset (förlaga: ägarens målarbokssida).
     function ritaFlygplanLitet(ctx, pic) {
         if (!fargLage) { ctx.drawImage(pic.img, 0, 0); return; }
@@ -1047,8 +977,6 @@ document.addEventListener('DOMContentLoaded', () => {
             [F.stal]: [[205, 501], [660, 285], [663, 264], [650, 338], [534, 396], [618, 747], [830, 742], [919, 785]],
             [F.morkstal]: [[233, 505], [283, 442], [192, 557], [421, 283], [873, 283], [663, 306], [503, 392]] },
           clawd: { x: 655, y: 575, s: 0.3, ytor: [[656, 502]] } },        // i dörrens ruta
-        { namn: 'Traktor (verklig)', rita: ritaTraktorVerklig, bild: 'bilder/traktor-verklig.svg',
-          clawd: { x: 600, y: 304, s: 0.42, ytor: [[520, 150], [650, 150], [560, 240], [640, 230]] } },  // kör traktorn
         { namn: 'Grävmaskin (verklig)', rita: ritaGravmaskinRen,
           clawd: { x: 718, y: 504, s: 0.36, ytor: [[718, 420]] } },        // i framrutan
         { namn: 'Litet flygplan', rita: ritaFlygplanLitet, bild: 'bilder/flygplan-litet.svg',
