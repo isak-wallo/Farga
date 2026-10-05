@@ -12,7 +12,7 @@ pastellfärger, inga ljud, inga poäng, inga val att göra.
 - En tecknad bild med mjukt mörkgrå konturer (`LINJEFARG`). Varje yta har en
   **given färg** (röd traktor, gul grävmaskin, blå himmel, grön kulle …) —
   barnet kan inte välja färg.
-- Man **målar fritt med fingret** (alla fingrar, `PENSEL` = radie i
+- Man **målar fritt med fingret** (alla fingrar, `PENSEL` (28) = radie i
   bildpixlar). Penseln "målar fram" färgen på de ytor den passerar. När
   `FYLL_ANDEL` (95 %) av en yta är målad fylls resten i av sig själv: färgen
   rinner ut från det målade med en mjuk kant (`startFade`/`ritaFade`,
@@ -139,7 +139,9 @@ pushas, annars fastnar plattan på gammal cache.
   får bara den, och pixlarna närmast linjerna fylls från närmaste del.
   Glapp som ändå läcker stängs med korta streck i `tillagg: [[x1, y1, x2,
   y2, …], …]` (ritas på linjelagret före numreringen), och enstaka ytor
-  rättas med `farger`-punkter. Hitta glappen genom att leta efter
+  rättas med `farger`-punkter. `delningar` (samma format) är osynliga
+  gränser som bara finns när ytorna numreras (`fyllDelningar` ger
+  pixlarna under dem grannytans nummer), t.ex. där kullens linje tar slut. Hitta glappen genom att leta efter
   färggränser i kartan som ligger mer än 8 px från närmaste linje.
 - **Kartan ska följa linjerna.** Mät upp linjernas lägen längs kolumner
   (skriv ut var alfa > 128 längs x = 0, 25, 50 …) och lägg kartans

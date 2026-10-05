@@ -33,7 +33,7 @@ BILDER = {
     'traktor':              ('skarp', (0, 0, 2000, 1493), 0),
     'gravmaskin':           ('skarp', (0, 0, 2000, 1493), 0),
     'flygplan':             ('skarp', (0, 0, 2000, 1493), 0),
-    'helikopter':           ('skarp', (0, 0, 1200, 896), 0),
+    'helikopter':           ('skarp', (0, 0, 2000, 1500), 0),
     'traktor-snett':        ('skarp', (0, 0, 1200, 896), 0),
     # Perspektivsidor (Image Studio / Gemini). Grävmaskinen kom kvadratisk:
     # beskärningen går utanför bilden och kanterna förlängs (se bredda).
